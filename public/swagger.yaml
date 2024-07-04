@@ -1,0 +1,180 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "API de Ejemplo"
+  description: "Descripción de la API de Ejemplo."
+
+schemes:
+  - "http"
+  - "https"
+
+paths:
+  /login:
+    post:
+      operationId: "app.login"
+      consumes:
+        - "application/json"  # Modified content type to accept JSON
+      parameters:
+        - name: requestBody
+          in: body
+          required: true
+          description: Token de acceso
+          schema:
+            type: "object"
+            properties:
+              access_token:
+                type: "string"
+                description: "Id obtenido en el login"
+
+      responses:
+        200:
+          description: Token válido.
+        401:
+          description: Token inválido.
+
+
+  /generar:
+    post:
+      operationId: "app.generar"
+      consumes:
+        - "application/json"  # Modified content type to accept JSON
+      summary: "Generar algo basado en la imagen"
+      description: "Genera algo utilizando la imagen base64"
+      parameters:
+        - name: "requestBody"
+          in: "body"
+          description: "Objeto JSON con la información requerida"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              token:
+                type: "string"
+                description: "Id obtenido en el login"
+              generation_id:
+                type: "string"
+                description: "generation_id obtenido"
+              image:
+                type: "string"
+                description: "Imagen en base64"
+              theme:
+                type: "string"
+                description: "MODERN, SCANDINAVIAN, LUXURIOUS, FARMHOUSE_CHIC, MODERN_POP,KIDS_ROOM"
+              room_type:
+                type: "string"
+                description: "LIVING_ROOM, BEDROOM, EMPTY, KITCHEN, DINING_ROOM, DINING_LIVING_ROOM, HOME_OFFICE, SHOWEROOM, BATHROOM, VERANDA, WC"
+      responses:
+        200:
+          description: "Respuesta exitosa."
+          schema:
+            type: "object"
+            properties:
+              generation_id:
+                type: "string"
+                description: "Identificador único de la generación."
+
+  /consultar:
+    post:
+      operationId: "app.consultar"
+      consumes:
+        - "application/json"  # Modified content type to accept JSON
+      summary: "Generar algo basado en la imagen"
+      description: "Genera algo utilizando la imagen base64"
+      parameters:
+        - name: "requestBody"
+          in: "body"
+          description: "Objeto JSON con la información requerida"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              generation_id:
+                type: "string"
+                description: "uuid de la imagen a consultar"
+              token:
+                type: "string"
+                description: "token obtenido en el login"
+      responses:
+        200:
+          description: "Respuesta exitosa."
+          schema:
+            type: "object"
+            properties:
+              image_url:
+                type: "string"
+                description: "Identificador único de la generación."
+              remaining_photos:
+                type: "integer"
+                description: "Número de fotos restantes."
+  /historial:
+    get:
+      operationId: "app.historial"
+      summary: "Obtener el historial de imágenes"
+      description: "Genera algo utilizando la imagen base64"
+      responses:
+        200:
+          description: "Respuesta exitosa."
+          schema:
+            type: "object"
+            properties:
+              images_url:
+                type: "array"
+                description: "Lista de URLs de imágenes."
+                items:
+                  type: "string"
+                  
+  /process_payment:
+    post:
+      summary: "Pagar fotos"
+      description: ""
+      operationId: "processPayment"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "Authorization"
+          required: true
+          type: "string"
+          description: "Bearer YOUR_ACCESS_TOKEN"
+        - in: "body"
+          name: "body"
+          description: "Payment details"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              transaction_amount:
+                type: "number"
+                example: 100
+              token:
+                type: "string"
+                example: "ff8080814c11e237014c1ff593b57b4d"
+              installments:
+                type: "integer"
+                example: 1
+              payment_method_id:
+                type: "string"
+                example: "visa"
+              issuer_id:
+                type: "integer"
+                example: 310
+              payer:
+                type: "object"
+                properties:
+                  email:
+                    type: "string"
+                    example: "PAYER_EMAIL_HERE"
+      responses:
+        200:
+          description: "Payment created"
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+                example: "123456789"
+              status:
+                type: "string"
+                example: "approved"

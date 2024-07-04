@@ -1,0 +1,4 @@
+fos_rest:
+    format_listener:
+        rules:
+            - { path: '^/', priorities: ['json', 'html', '*/*'], fallback_format: json, prefer_extension: false }
