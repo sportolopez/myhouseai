@@ -10,32 +10,37 @@ use Doctrine\ORM\Mapping as ORM;
 class Imagen
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
     #[ORM\Column(type: Types::GUID)]
-    private ?string $uuid = null;
+    private ?string $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::BLOB, nullable: false)]
     private ?string $data = null;
 
-    public function getId(): ?int
+    #[ORM\ManyToOne(inversedBy: 'imagens')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Usuario $Usuario = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $fecha = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $estilo = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $tipoHabitacion = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
 
-    public function getUuid(): ?string
-    {
-        return $this->uuid;
-    }
-
-    public function setUuid(string $uuid): static
-    {
-        $this->uuid = $uuid;
+    public function setId(string $id): static
+    {   
+        $this->id = $id;
 
         return $this;
     }
+
 
     public function getData(): ?string
     {
@@ -45,6 +50,54 @@ class Imagen
     public function setData(string $data): static
     {
         $this->data = $data;
+
+        return $this;
+    }
+
+    public function getUsuario(): ?Usuario
+    {
+        return $this->Usuario;
+    }
+
+    public function setUsuario(?Usuario $Usuario): static
+    {
+        $this->Usuario = $Usuario;
+
+        return $this;
+    }
+
+    public function getFecha(): ?\DateTimeInterface
+    {
+        return $this->fecha;
+    }
+
+    public function setFecha(\DateTimeInterface $fecha): static
+    {
+        $this->fecha = $fecha;
+
+        return $this;
+    }
+
+    public function getEstilo(): ?string
+    {
+        return $this->estilo;
+    }
+
+    public function setEstilo(string $estilo): static
+    {
+        $this->estilo = $estilo;
+
+        return $this;
+    }
+
+    public function getTipoHabitacion(): ?string
+    {
+        return $this->tipoHabitacion;
+    }
+
+    public function setTipoHabitacion(string $tipoHabitacion): static
+    {
+        $this->tipoHabitacion = $tipoHabitacion;
 
         return $this;
     }

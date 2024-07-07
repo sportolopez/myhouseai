@@ -7,9 +7,59 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use \Firebase\JWT\JWT;
+use Ramsey\Uuid\Uuid;
+use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Imagen;
+use DateTime;
+use App\Entity\Usuario;
 
 class DefaultController extends AbstractController
 {
+
+
+    function check_auth_header($auth_header) {
+    
+        if (!$auth_header) {
+            error_log("No se encontró el encabezado de autorización.");
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['error' => 'No se encontró el encabezado de autorización.']);
+            exit;
+        }
+    
+        $token_parts = explode(' ', $auth_header);
+        if (count($token_parts) != 2 || strtolower($token_parts[0]) != 'bearer') {
+            error_log("Encabezado de autorización inválido.");
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['error' => 'Encabezado de autorización inválido.']);
+            exit;
+        }
+    
+        $token_jwt = $token_parts[1];
+    
+        // Decodificar el JWT
+        try {
+            $payload = JWT::decode($token_jwt, new Key('secret_key', 'HS256'));
+            error_log("Token válido: " . json_encode($payload));
+            return $payload;
+        } catch (Firebase\JWT\ExpiredSignatureException $e) {
+            error_log("Token expirado.");
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['error' => 'Token expirado']);
+            exit;
+        } catch (Firebase\JWT\SignatureInvalidException $e) {
+            error_log("Token inválido.");
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['error' => 'Token inválido']);
+            exit;
+        }
+    }
+    
+
     #[Route('/', name: 'homepage')]
     public function index(): Response
     {
@@ -17,22 +67,21 @@ class DefaultController extends AbstractController
         return new Response('<html><body>Hola Mundoaaaaaaaaaa</body></html>');
     }
 
-    #[Route('/hola', name: 'homepage2')]
-    public function index2(): Response
-    {
-        return new Response('<html><body>Hola Mundo222222   </body></html>');
-    }
-
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
-    public function historial(): JsonResponse
+    public function historial(ManagerRegistry $doctrine): JsonResponse
     {
         // Implementa la lógica de obtención del historial aquí
+        
+        $entityManager = $doctrine->getManager();
+   
+
+        $usuario = $entityManager->getRepository(Usuario::class)->find(1);
 
         return new JsonResponse([
             'images_url' => [
-                'https://example.com/image1.png',
-                'https://example.com/image2.png',
-                'https://example.com/image3.png'
+                'https://www.nucleos.cl/blog/wp-content/uploads/2020/09/decoracion-living-comedor.jpg',
+                'https://i.pinimg.com/736x/d9/07/3a/d9073a78cfc866b6b647d2d74c12800e.jpg',
+                'https://i.pinimg.com/736x/d9/07/3a/d9073a78cfc866b6b647d2d74c12800e.jpg'
             ]
         ], JsonResponse::HTTP_OK);
     }
@@ -45,21 +94,72 @@ class DefaultController extends AbstractController
 
         // Implementa la lógica de validación del token aquí
 
-        if ($accessToken === 'valid_token') {
-            return new JsonResponse(['message' => 'Token válido.'], JsonResponse::HTTP_OK);
-        } else {
-            return new JsonResponse(['message' => 'Token inválido.'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
+
+            // Ejemplo de uso
+        $token_info = array(
+            'user_id' => 123,
+            "name" => "example_user"
+        );
+
+        $secret_key = 'secret_key';
+        $payload = array(
+            "token_info" => $token_info
+        );
+    
+        $jwt = JWT::encode($payload, $secret_key, 'HS256');
+    
+        $token =  json_encode(array(
+            'jwt_token' => $jwt,
+            'userInfo' => $token_info
+        ));
+
+
+        return new JsonResponse($token, JsonResponse::HTTP_OK);
+
     }
 
     #[Route('/generar', name: 'app_generar', methods: ['POST'])]
-    public function generar(Request $request): JsonResponse
+    public function generar(ManagerRegistry $doctrine,Request $request): JsonResponse
     {
+       
+        // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
 
-        // Implementa la lógica de generación aquí
+        if (!isset($data['image'])) {
+            return new JsonResponse(['error' => 'No image provided'], JsonResponse::HTTP_BAD_REQUEST);
+        }
 
-        return new JsonResponse(['generation_id' => 'some_generated_id'], JsonResponse::HTTP_OK);
+        $base64Image = $data['image'];
+        
+        // Decodificar la imagen base64
+        $imageData = base64_decode($base64Image);
+        if ($imageData === false) {
+            return new JsonResponse(['error' => 'Invalid base64 image data'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Generar un UUID para el nombre de la imagen
+        $uuid = Uuid::uuid4()->toString();
+        
+        $entityManager = $doctrine->getManager();
+   
+
+        $usuario = $entityManager->getRepository(Usuario::class)->find(1);
+
+        $usuario->__toString();
+
+        $imagen = new Imagen();
+        $imagen->setId($uuid);
+        $imagen->setData($imageData);
+        $imagen->setUsuario($usuario);
+        $imagen->setEstilo("Moderno");
+        $imagen->setTipoHabitacion("Moderno");
+        $imagen->setFecha( new DateTime());
+        $entityManager->persist($imagen);
+        $entityManager->flush();
+
+
+       
+        return new JsonResponse(['generation_id' => $uuid], JsonResponse::HTTP_OK);
     }
 
     #[Route('/consultar', name: 'app_consultar', methods: ['POST'])]
@@ -100,4 +200,10 @@ class DefaultController extends AbstractController
 
         return new JsonResponse($paymentResponse, 200);
     }
+
+
+
+
+    
+
 }
