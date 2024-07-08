@@ -24,7 +24,7 @@ class RequestSubscriber implements EventSubscriberInterface
         $routeName = basename($request->getUri());
     
         // Proteger solo ciertas rutas
-        $unProtectedRoutes = ['login'];
+        $unProtectedRoutes = ['login','public'];
         if (in_array($routeName, $unProtectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
@@ -37,7 +37,7 @@ class RequestSubscriber implements EventSubscriberInterface
         $authHeader = $request->headers->get('Token');
 
         if (!$authHeader) {
-            throw new AccessDeniedHttpException('No se encontró el encabezado de autorización.');
+            throw new AccessDeniedHttpException('No se encontró el encabezado de autorización.' . $routeName);
         }
 
         $tokenParts = explode(' ', $authHeader);
