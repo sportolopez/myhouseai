@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ImagenRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -29,8 +31,13 @@ class Imagen
     #[ORM\Column(length: 255)]
     private ?string $tipoHabitacion = null;
 
-    #[ORM\Column(type: Types::BLOB, nullable: true)]
-    private $imgGenerada = null;
+    #[ORM\OneToMany(mappedBy: 'Imagen', targetEntity: Variacion::class)]
+    private Collection $variaciones;
+
+    public function __construct()
+    {
+        $this->variaciones = new ArrayCollection();
+    }
 
     public function getId(): ?string
     {
@@ -105,14 +112,32 @@ class Imagen
         return $this;
     }
 
-    public function getImgGenerada()
+    /**
+     * @return Collection<int, Variacion>
+     */
+    public function getVariaciones(): Collection
     {
-        return $this->imgGenerada;
+        return $this->variaciones;
     }
 
-    public function setImgGenerada($imgGenerada): static
+    public function addVariacione(Variacion $variacione): static
     {
-        $this->imgGenerada = $imgGenerada;
+        if (!$this->variaciones->contains($variacione)) {
+            $this->variaciones->add($variacione);
+            $variacione->setImagen($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariacione(Variacion $variacione): static
+    {
+        if ($this->variaciones->removeElement($variacione)) {
+            // set the owning side to null (unless already changed)
+            if ($variacione->getImagen() === $this) {
+                $variacione->setImagen(null);
+            }
+        }
 
         return $this;
     }
