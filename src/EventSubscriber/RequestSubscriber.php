@@ -5,7 +5,9 @@ namespace App\EventSubscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
-
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 class RequestSubscriber implements EventSubscriberInterface
 {
     public static function getSubscribedEvents(): array
@@ -19,27 +21,20 @@ class RequestSubscriber implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $routeName = $request->getUri();
+        $routeName = basename($request->getUri());
     
         // Proteger solo ciertas rutas
-        $protectedRoutes = ['/generar'];
-        if (!in_array($routeName, $protectedRoutes)) {
+        $unProtectedRoutes = ['login'];
+        if (in_array($routeName, $unProtectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
         }
 
-        error_log("Entro el onKernelController.");
-        $request = $event->getRequest();
-        $routeName = $request->attributes->get('_route');
-
-        // Proteger solo ciertas rutas
-        $protectedRoutes = ['app_generar', 'otra_ruta_protegida'];
-        if (!in_array($routeName, $protectedRoutes)) {
-            return;
-        }
+        error_log("Entro el onKernelRequest.");
 
         $request = $event->getRequest();
-        $authHeader = $request->headers->get('Authorization');
+        //print_r($request->headers->all());
+        $authHeader = $request->headers->get('Token');
 
         if (!$authHeader) {
             throw new AccessDeniedHttpException('No se encontró el encabezado de autorización.');
@@ -65,6 +60,9 @@ class RequestSubscriber implements EventSubscriberInterface
 
     public function onKernelController(ControllerEvent $event)
     {
+        error_log("Entro el onKernelController.");
+
+
 
     }
 }
