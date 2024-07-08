@@ -111,13 +111,14 @@ class DefaultController extends AbstractController
     
         $jwt = JWT::encode($payload, $secret_key, 'HS256');
     
-        $token =  json_encode(array(
+        $token =  array(
             'jwt_token' => $jwt,
             'userInfo' => $token_info
-        ));
+        );
 
 
         return new JsonResponse($token, JsonResponse::HTTP_OK);
+        
 
     }
 
