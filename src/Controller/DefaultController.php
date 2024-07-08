@@ -73,9 +73,9 @@ class DefaultController extends AbstractController
         // Implementa la lógica de obtención del historial aquí
         
         $entityManager = $doctrine->getManager();
-   
+        
         $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
-        $url = "https://comomequeda.com.ar/rest_api_project/public/consultar/";
+        $url = "https://comomequeda.com.ar/myhouseai/public/";
 
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
