@@ -14,7 +14,7 @@ class Imagen
     private ?string $id = null;
 
     #[ORM\Column(type: Types::BLOB, nullable: false)]
-    private ?string $data = null;
+    private $imgOrigen = null;
 
     #[ORM\ManyToOne(inversedBy: 'imagens')]
     #[ORM\JoinColumn(nullable: false)]
@@ -29,6 +29,9 @@ class Imagen
     #[ORM\Column(length: 255)]
     private ?string $tipoHabitacion = null;
 
+    #[ORM\Column(type: Types::BLOB, nullable: true)]
+    private $imgGenerada = null;
+
     public function getId(): ?string
     {
         return $this->id;
@@ -42,14 +45,14 @@ class Imagen
     }
 
 
-    public function getData(): ?string
+    public function getImgOrigen()
     {
-        return $this->data;
+        return $this->imgOrigen;
     }
 
-    public function setData(string $data): static
+    public function setImgOrigen($imgOrigen): static
     {
-        $this->data = $data;
+        $this->imgOrigen = $imgOrigen;
 
         return $this;
     }
@@ -98,6 +101,18 @@ class Imagen
     public function setTipoHabitacion(string $tipoHabitacion): static
     {
         $this->tipoHabitacion = $tipoHabitacion;
+
+        return $this;
+    }
+
+    public function getImgGenerada()
+    {
+        return $this->imgGenerada;
+    }
+
+    public function setImgGenerada($imgGenerada): static
+    {
+        $this->imgGenerada = $imgGenerada;
 
         return $this;
     }

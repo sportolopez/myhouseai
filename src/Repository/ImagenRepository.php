@@ -36,13 +36,12 @@ class ImagenRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?Imagen
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        public function findByUsuarioId(int $usuarioId): array
+        {
+            return $this->createQueryBuilder('i')
+            ->andWhere('i.Usuario = :usuarioId')
+            ->setParameter('usuarioId', $usuarioId)
+            ->getQuery()
+            ->getResult();
+        }
 }

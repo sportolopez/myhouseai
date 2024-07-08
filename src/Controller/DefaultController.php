@@ -68,22 +68,25 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
-    public function historial(ManagerRegistry $doctrine): JsonResponse
+    public function historial(ManagerRegistry $doctrine): Response
     {
         // Implementa la lógica de obtención del historial aquí
         
         $entityManager = $doctrine->getManager();
    
+        $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
+        $url = "https://comomequeda.com.ar/rest_api_project/public/consultar/";
 
-        $usuario = $entityManager->getRepository(Usuario::class)->find(1);
-
-        return new JsonResponse([
-            'images_url' => [
-                'https://www.nucleos.cl/blog/wp-content/uploads/2020/09/decoracion-living-comedor.jpg',
-                'https://i.pinimg.com/736x/d9/07/3a/d9073a78cfc866b6b647d2d74c12800e.jpg',
-                'https://i.pinimg.com/736x/d9/07/3a/d9073a78cfc866b6b647d2d74c12800e.jpg'
-            ]
-        ], JsonResponse::HTTP_OK);
+        $imagenesArray = [];
+        foreach ($imagenes as $imagen) {
+            $imagenesArray[] = [
+                'id' => $url . $imagen->getId() . ".png"
+            ];
+        }
+        
+        $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
+        
+        return new Response($jsonResponse, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
     #[Route('/login', name: 'app_login', methods: ['POST'])]
@@ -149,7 +152,8 @@ class DefaultController extends AbstractController
 
         $imagen = new Imagen();
         $imagen->setId($uuid);
-        $imagen->setData($imageData);
+        $imagen->setImgOrigen($imageData);
+        $imagen->setImgGenerada($imageData);
         $imagen->setUsuario($usuario);
         $imagen->setEstilo("Moderno");
         $imagen->setTipoHabitacion("Moderno");
@@ -162,17 +166,21 @@ class DefaultController extends AbstractController
         return new JsonResponse(['generation_id' => $uuid], JsonResponse::HTTP_OK);
     }
 
-    #[Route('/consultar', name: 'app_consultar', methods: ['POST'])]
-    public function consultar(Request $request): JsonResponse
+    #[Route('/consultar/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
+    public function consultar(string $uuid, ManagerRegistry $doctrine): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $imagen = $doctrine->getRepository(Imagen::class)->find($uuid);
 
-        // Implementa la lógica de consulta aquí
+        if (!$imagen) {
+            return new Response('Image not found', Response::HTTP_NOT_FOUND);
+        }
 
-        return new JsonResponse([
-            'image_url' => 'https://example.com/image.png',
-            'remaining_photos' => 5
-        ], JsonResponse::HTTP_OK);
+        $imageResource = $imagen->getImgGenerada();
+        $imageData = stream_get_contents($imageResource);
+        $response = new Response($imageData);
+        $response->headers->set('Content-Type', 'image/jpeg'); // Ajusta el tipo MIME según el formato de tu imagen
+
+        return $response;
     }
 
     #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
