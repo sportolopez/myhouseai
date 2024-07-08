@@ -17,7 +17,16 @@ use App\Entity\Usuario;
 class DefaultController extends AbstractController
 {
 
-
+    #[Route('/{any}', name: 'app_options', requirements: ['any' => '.*'], methods: ['OPTIONS'])]
+    public function options(): JsonResponse
+    {
+        $response = new JsonResponse();
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return $response;
+    }
+    
     function check_auth_header($auth_header) {
     
         if (!$auth_header) {

@@ -23,6 +23,7 @@ class RequestSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $routeName = basename($request->getUri());
     
+
         // Proteger solo ciertas rutas
         $unProtectedRoutes = ['login','public'];
         if (in_array($routeName, $unProtectedRoutes)) {
