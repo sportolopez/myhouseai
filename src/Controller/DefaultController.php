@@ -153,7 +153,6 @@ class DefaultController extends AbstractController
         $imagen = new Imagen();
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
-        $imagen->setImgGenerada($imageData);
         $imagen->setUsuario($usuario);
         $imagen->setEstilo("Moderno");
         $imagen->setTipoHabitacion("Moderno");
