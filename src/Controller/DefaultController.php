@@ -98,7 +98,7 @@ class DefaultController extends AbstractController
         // Implementa la lógica de validación del token aquí
 
 
-            // Ejemplo de uso
+        // Ejemplo de uso
         $token_info = array(
             'user_id' => 123,
             "name" => "example_user"
