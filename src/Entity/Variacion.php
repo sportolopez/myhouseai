@@ -10,9 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Variacion
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: Types::GUID)]
+    private ?string $id = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'variaciones')]
     #[ORM\JoinColumn(nullable: false)]
@@ -24,9 +24,16 @@ class Variacion
     #[ORM\Column(type: Types::BLOB)]
     private $img = null;
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {   
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getImagen(): ?Imagen

@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Variacion;
+use App\Repository\UsuarioRepository;
+use App\Repository\VariacionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Imagen;
 use DateTime;
 use App\Entity\Usuario;
+use App\Service\ApiClientService;
 
 class DefaultController extends AbstractController
 {
@@ -132,7 +136,7 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/generar', name: 'app_generar', methods: ['POST'])]
-    public function generar(ManagerRegistry $doctrine,Request $request): JsonResponse
+    public function generar(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, ApiClientService $apiClientService, VariacionRepository $variacionRepository): JsonResponse
     {
        
         // Obtener los datos de la solicitud
@@ -156,23 +160,31 @@ class DefaultController extends AbstractController
         $entityManager = $doctrine->getManager();
    
 
-        $usuario = $entityManager->getRepository(Usuario::class)->find(1);
+        $usuario = $usuarioRepository->find(1);
 
-        $usuario->__toString();
-
+        
         $imagen = new Imagen();
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
         $imagen->setUsuario($usuario);
-        $imagen->setEstilo("Moderno");
-        $imagen->setTipoHabitacion("Moderno");
+        $imagen->setEstilo($data['theme']);
+        $imagen->setTipoHabitacion($data['room_type']);
         $imagen->setFecha( new DateTime());
         $entityManager->persist($imagen);
         $entityManager->flush();
 
+        $variacion = $apiClientService->generarImagen($imagen);
 
+        
+        $entityManager->persist($variacion);
        
-        return new JsonResponse(['generation_id' => $uuid], JsonResponse::HTTP_OK);
+        $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()-1);
+
+        $entityManager->persist($usuario);
+
+        $entityManager->flush();
+        
+        return new JsonResponse(['generation_id' => $variacion->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
 
     #[Route('/consultar/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
