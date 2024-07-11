@@ -261,6 +261,40 @@ class DefaultController extends AbstractController
     }
 
 
+    #[Route('/parametria', name: 'parametria', methods: ['GET'])]
+    public function parametria(Request $request): JsonResponse
+    {
+        $data = [
+            "styles" => [
+                "modern",
+                "scandinavian",
+                "industrial",
+                "midcentury",
+                "luxury",
+                "farmhouse",
+                "coastal",
+                "standard"
+            ],
+            "roomTypes" => [
+                "living",
+                "bed",
+                "kitchen",
+                "dining",
+                "bathroom",
+                "home_office"
+            ],
+            "precios" => [
+                "10 imagenes: 50",
+                "100 imagenes: 50",
+                "500 imagenes: 50"
+            ]
+
+        ];
+        
+
+        return new JsonResponse($data, 200);
+    }
+
 
 
     
