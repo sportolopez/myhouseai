@@ -88,7 +88,7 @@ class DefaultController extends AbstractController
         $entityManager = $doctrine->getManager();
         
         $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
-        $url = "https://comomequeda.com.ar/myhouseai/public/";
+        $url = "https://comomequeda.com.ar/myhouseai/public/consultar/";
 
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
@@ -109,7 +109,14 @@ class DefaultController extends AbstractController
         $accessToken = $data['access_token'] ?? null;
 
         // Implementa la lógica de validación del token aquí
-
+        $user_info = validate_access_token($accessToken);
+        print_r("user info obtenido" . $user_info);
+        if ($user_info !== null) {
+            print_r($user_info);
+        } else {
+            throw new AccessDeniedHttpException('Encabezado de autorización inválido.');
+            #return new JsonResponse($token, JsonResponse::HTTP_UNAUTHORIZED);
+        }
 
         // Ejemplo de uso
         $token_info = array(
@@ -183,7 +190,7 @@ class DefaultController extends AbstractController
         $entityManager->persist($usuario);
 
         $entityManager->flush();
-        
+
         return new JsonResponse(['generation_id' => $variacion->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
 
@@ -196,7 +203,7 @@ class DefaultController extends AbstractController
             return new Response('Image not found', Response::HTTP_NOT_FOUND);
         }
 
-        $imageResource = $imagen->getImgGenerada();
+        $imageResource = $imagen->getImgOrigen();
         $imageData = stream_get_contents($imageResource);
         $response = new Response($imageData);
         $response->headers->set('Content-Type', 'image/jpeg'); // Ajusta el tipo MIME según el formato de tu imagen

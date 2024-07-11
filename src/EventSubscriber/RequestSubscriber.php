@@ -25,12 +25,12 @@ class RequestSubscriber implements EventSubscriberInterface
     
 
         // Proteger solo ciertas rutas
-        $unProtectedRoutes = ['login','public'];
-        if (in_array($routeName, $unProtectedRoutes)) {
+        $protectedRoutes = ['generar'];
+        if (!in_array($routeName, $protectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
         }
-
+        error_log("La request esta protegida: " .  $routeName);
         error_log("Entro el onKernelRequest.");
 
         $request = $event->getRequest();
