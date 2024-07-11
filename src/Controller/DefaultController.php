@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Variacion;
+use App\Repository\ImagenRepository;
 use App\Repository\UsuarioRepository;
 use App\Repository\VariacionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -192,6 +193,28 @@ class DefaultController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['generation_id' => $variacion->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
+    }
+
+    #[Route('/status/{uuid}', name: 'homepage')]
+    public function status(string $uuid, ImagenRepository $imagenRepository): JsonResponse
+    {
+        /*
+        $imagen = $imagenRepository->find($uuid);
+
+        if (!$imagen) {
+            return new Response('Image not found', Response::HTTP_NOT_FOUND);
+        }
+        */
+        $response = [
+            "render_id" => $uuid,
+            "status" => "rendering",
+            "created_at" => 1685742540902, // epoch timestamp
+            "outputs" => [], // will contain output image urls if status == "done". Will an entry for each new variation.
+            "progress" => 0.7432000000000001, // number 0-1
+            "outputs_room_types" => [],
+            "outputs_styles"=> []
+        ];
+        return new JsonResponse($response, 200);;
     }
 
     #[Route('/consultar/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
