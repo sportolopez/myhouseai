@@ -106,10 +106,13 @@ class DefaultController extends AbstractController
     #[Route('/login', name: 'app_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
+        
         $data = json_decode($request->getContent(), true);
+        error_log("entro al login");
         $accessToken = $data['access_token'] ?? null;
 
         // Implementa la lógica de validación del token aquí
+        /*
         $user_info = validate_access_token($accessToken);
         print_r("user info obtenido" . $user_info);
         if ($user_info !== null) {
@@ -117,7 +120,7 @@ class DefaultController extends AbstractController
         } else {
             throw new AccessDeniedHttpException('Encabezado de autorización inválido.');
             #return new JsonResponse($token, JsonResponse::HTTP_UNAUTHORIZED);
-        }
+        }*/
 
         // Ejemplo de uso
         $token_info = array(
@@ -136,9 +139,9 @@ class DefaultController extends AbstractController
             'jwt_token' => $jwt,
             'userInfo' => $token_info
         );
+        error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
 
-
-        return new JsonResponse($token, JsonResponse::HTTP_OK);
+        return new JsonResponse($token,200);
         
 
     }
