@@ -50,7 +50,7 @@ class Utils
             return $userInfo;
         } else {
             // Lanzar una excepción adecuada
-            throw new UnauthorizedHttpException('Bearer', 'Encabezado de autorización de Google inválido.');
+            throw new AccessDeniedHttpException('Encabezado de autorización de Google inválido.');
         }
     }
 
