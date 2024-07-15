@@ -18,7 +18,7 @@ use App\Entity\Imagen;
 use DateTime;
 use App\Entity\Usuario;
 use App\Service\ApiClientService;
-
+use App\Service\Utils;
 class DefaultController extends AbstractController
 {
 
@@ -32,46 +32,7 @@ class DefaultController extends AbstractController
         return $response;
     }
     
-    function check_auth_header($auth_header) {
-    
-        if (!$auth_header) {
-            error_log("No se encontró el encabezado de autorización.");
-            header('Content-Type: application/json');
-            http_response_code(401);
-            echo json_encode(['error' => 'No se encontró el encabezado de autorización.']);
-            exit;
-        }
-    
-        $token_parts = explode(' ', $auth_header);
-        if (count($token_parts) != 2 || strtolower($token_parts[0]) != 'bearer') {
-            error_log("Encabezado de autorización inválido.");
-            header('Content-Type: application/json');
-            http_response_code(401);
-            echo json_encode(['error' => 'Encabezado de autorización inválido.']);
-            exit;
-        }
-    
-        $token_jwt = $token_parts[1];
-    
-        // Decodificar el JWT
-        try {
-            $payload = JWT::decode($token_jwt, new Key('secret_key', 'HS256'));
-            error_log("Token válido: " . json_encode($payload));
-            return $payload;
-        } catch (Firebase\JWT\ExpiredSignatureException $e) {
-            error_log("Token expirado.");
-            header('Content-Type: application/json');
-            http_response_code(401);
-            echo json_encode(['error' => 'Token expirado']);
-            exit;
-        } catch (Firebase\JWT\SignatureInvalidException $e) {
-            error_log("Token inválido.");
-            header('Content-Type: application/json');
-            http_response_code(401);
-            echo json_encode(['error' => 'Token inválido']);
-            exit;
-        }
-    }
+
     
 
     #[Route('/', name: 'homepage')]
@@ -112,21 +73,12 @@ class DefaultController extends AbstractController
         $accessToken = $data['access_token'] ?? null;
 
         // Implementa la lógica de validación del token aquí
-        /*
-        $user_info = validate_access_token($accessToken);
-        print_r("user info obtenido" . $user_info);
-        if ($user_info !== null) {
-            print_r($user_info);
-        } else {
-            throw new AccessDeniedHttpException('Encabezado de autorización inválido.');
-            #return new JsonResponse($token, JsonResponse::HTTP_UNAUTHORIZED);
-        }*/
+        
+        $user_info = Utils::validateAccessToken($accessToken);
+
 
         // Ejemplo de uso
-        $token_info = array(
-            'user_id' => 123,
-            "name" => "example_user"
-        );
+        $token_info = $user_info;
 
         $secret_key = 'secret_key';
         $payload = array(

@@ -43,7 +43,7 @@ class RequestSubscriber implements EventSubscriberInterface
 
         $tokenParts = explode(' ', $authHeader);
         if (count($tokenParts) != 2 || strtolower($tokenParts[0]) != 'bearer') {
-            throw new AccessDeniedHttpException('Encabezado de autorización inválido.');
+            throw new AccessDeniedHttpException('Encabezado de autorización inválidoooo.');
         }
 
         $tokenJwt = $tokenParts[1];
@@ -66,4 +66,5 @@ class RequestSubscriber implements EventSubscriberInterface
 
 
     }
+
 }
