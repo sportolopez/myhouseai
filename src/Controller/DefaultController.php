@@ -65,7 +65,7 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/login', name: 'app_login', methods: ['POST'])]
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine): JsonResponse
     {
         
         $data = json_decode($request->getContent(), true);
@@ -76,7 +76,18 @@ class DefaultController extends AbstractController
         
         $user_info = Utils::validateAccessToken($accessToken);
 
+        $usuarioLogueado = $usuarioRepository->findOneByEmail($user_info['email']);
 
+        if(!$usuarioLogueado){
+            $nuevoUsuario = new Usuario();
+            $nuevoUsuario->setEmail($user_info['email']);
+            $nuevoUsuario->setNombre($user_info['name']);
+            $nuevoUsuario->setCantidadImagenesDisponibles(10);
+            $entityManager = $doctrine->getManager();
+            $entityManager->persist($nuevoUsuario);
+            $entityManager->flush();
+        }
+       
         // Ejemplo de uso
         $token_info = $user_info;
 

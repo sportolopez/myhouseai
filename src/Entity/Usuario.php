@@ -18,7 +18,7 @@ class Usuario
     #[ORM\Column(length: 255)]
     private ?string $nombre = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique:true)]
     private ?string $email = null;
 
     #[ORM\OneToMany(mappedBy: 'Usuario', targetEntity: Imagen::class)]
