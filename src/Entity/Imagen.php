@@ -31,7 +31,7 @@ class Imagen
     #[ORM\Column(length: 255)]
     private ?string $tipoHabitacion = null;
 
-    #[ORM\OneToMany(mappedBy: 'Imagen', targetEntity: Variacion::class)]
+    #[ORM\OneToMany(mappedBy: 'imagen', targetEntity: Variacion::class)]
     private Collection $variaciones;
 
     public function __construct()
@@ -140,5 +140,23 @@ class Imagen
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        $variacionesStr = array_map(function($variacion) {
+            return $variacion->getId();
+        }, $this->variaciones->toArray());
+
+        return sprintf(
+            "ID: %s, Imagen Origen: %s, Usuario: %s, Fecha: %s, Estilo: %s, Tipo Habitación: %s, Variaciones: [%s]",
+            $this->id,
+            $this->imgOrigen,
+            $this->Usuario ? $this->Usuario->getId() : 'N/A',
+            $this->fecha ? $this->fecha->format('Y-m-d H:i:s') : 'N/A',
+            $this->estilo,
+            $this->tipoHabitacion,
+            implode(', ', $variacionesStr)
+        );
     }
 }

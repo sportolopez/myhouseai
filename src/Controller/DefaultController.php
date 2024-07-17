@@ -50,13 +50,16 @@ class DefaultController extends AbstractController
         $entityManager = $doctrine->getManager();
         
         $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
-        $url = "https://comomequeda.com.ar/myhouseai/public/consultar/";
-
+        $url = "http://comomequeda.com.ar/myhouseai/public/consultar/";
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
-            $imagenesArray[] = [
-                'id' => $url . $imagen->getId() . ".png"
-            ];
+            //$variaciones = $entityManager->getRepository(Variacion::class)->findByImagen($imagen);
+            $variaciones = $imagen->getVariaciones()->toArray();
+            
+            $variacionesIds = array_map(function($variacion) {
+                return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . "png";
+            }, $variaciones);
+            $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png", "variaciones" => $variacionesIds];
         }
         
         $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
@@ -72,7 +75,7 @@ class DefaultController extends AbstractController
             ]
         ];
         
-        return new JsonResponse($data, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+        return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
     #[Route('/login', name: 'app_login', methods: ['POST'])]
@@ -121,14 +124,28 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/generar', name: 'app_generar', methods: ['POST'])]
-    public function generar(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, ApiClientService $apiClientService, VariacionRepository $variacionRepository): JsonResponse
+    public function generar(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, ImagenRepository $imagenRepository, ApiClientService $apiClientService, VariacionRepository $variacionRepository): JsonResponse
     {
-       
+        $entityManager = $doctrine->getManager();
+        //TODO: el usuario tiene que venir del token
+        $usuario = $usuarioRepository->find(1);
+
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['image'])) {
-            return new JsonResponse(['error' => 'No image provided'], JsonResponse::HTTP_BAD_REQUEST);
+        if (!isset($data['image']) && !isset($data['generation_id'])) {
+            return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id']);
+        }
+
+        if(isset($data['generation_id'])){
+            $imagen = $imagenRepository->find($data['generation_id']);
+            if(!$imagen)
+                return new JsonResponse(['error' => 'No se encontro una imagen con ese generation_id']);
+
+            $variacion = $apiClientService->generarVariacion($imagen);
+            $entityManager->persist($variacion);
+            $entityManager->flush();
+            return new JsonResponse(['generation_id' => $imagen->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
         }
 
         $base64Image = $data['image'];
@@ -142,10 +159,7 @@ class DefaultController extends AbstractController
         // Generar un UUID para el nombre de la imagen
         $uuid = Uuid::uuid4()->toString();
         
-        $entityManager = $doctrine->getManager();
-   
 
-        $usuario = $usuarioRepository->find(1);
 
         
         $imagen = new Imagen();
@@ -169,7 +183,7 @@ class DefaultController extends AbstractController
 
         $entityManager->flush();
 
-        return new JsonResponse(['generation_id' => $variacion->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
+        return new JsonResponse(['generation_id' => $uuid,'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
 
     #[Route('/status/{uuid}', name: 'homepage')]

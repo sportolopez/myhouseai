@@ -22,9 +22,18 @@ class ApiClientService
         return $unaVariacion;
     }
 
-    public function generarVariacion(string $to, string $subject, string $body)
+    public function generarVariacion(Imagen $imagen)
     {
-        // Lógica para enviar correo electrónico
+        $unaVariacion = new Variacion();
+        $unaVariacion->setImagen($imagen);
+        $unaVariacion->setFecha(new \DateTime());
+
+        //El id que viene del servicio
+        $unaVariacion->setId(Uuid::uuid4()->toString());
+        //Imagen obtenida
+        $unaVariacion->setImg($imagen->getImgOrigen());
+
+        return $unaVariacion;
     }
 }
 

@@ -16,7 +16,7 @@ class Variacion
 
     #[ORM\ManyToOne(inversedBy: 'variaciones')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Imagen $Imagen = null;
+    private ?Imagen $imagen = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fecha = null;
@@ -38,12 +38,12 @@ class Variacion
 
     public function getImagen(): ?Imagen
     {
-        return $this->Imagen;
+        return $this->imagen;
     }
 
-    public function setImagen(?Imagen $Imagen): static
+    public function setImagen(?Imagen $imagen): static
     {
-        $this->Imagen = $Imagen;
+        $this->imagen = $imagen;
 
         return $this;
     }
