@@ -57,7 +57,7 @@ class DefaultController extends AbstractController
             $variaciones = $imagen->getVariaciones()->toArray();
             
             $variacionesIds = array_map(function($variacion) {
-                return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . "png";
+                return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png";
             }, $variaciones);
             $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png", "variaciones" => $variacionesIds];
         }
@@ -224,6 +224,24 @@ class DefaultController extends AbstractController
 
         return $response;
     }
+
+    #[Route('/variacion/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
+    public function getVariacion(string $uuid, ManagerRegistry $doctrine): Response
+    {
+        $variacion = $doctrine->getRepository(Variacion::class)->find($uuid);
+
+        if (!$variacion) {
+            return new Response('Image not found', Response::HTTP_NOT_FOUND);
+        }
+
+        $imageResource = $variacion->getImg();
+        $imageData = stream_get_contents($imageResource);
+        $response = new Response($imageData);
+        $response->headers->set('Content-Type', 'image/jpeg'); // Ajusta el tipo MIME según el formato de tu imagen
+
+        return $response;
+    }
+
 
     #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
     public function createPayment(Request $request): JsonResponse
