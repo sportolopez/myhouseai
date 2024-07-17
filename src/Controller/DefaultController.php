@@ -61,7 +61,18 @@ class DefaultController extends AbstractController
         
         $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
         
-        return new Response($jsonResponse, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+
+        $data = [
+            [
+                "imagen" => "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png",
+                "variaciones" => [
+                    "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png",
+                    "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png"
+                ]
+            ]
+        ];
+        
+        return new JsonResponse($data, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
     #[Route('/login', name: 'app_login', methods: ['POST'])]
