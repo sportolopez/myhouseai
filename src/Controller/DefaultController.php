@@ -64,17 +64,6 @@ class DefaultController extends AbstractController
         
         $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
         
-
-        $data = [
-            [
-                "imagen" => "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png",
-                "variaciones" => [
-                    "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png",
-                    "https://comomequeda.com.ar/myhouseai/public/consultar/0d05e78e-987b-4253-8ce8-755d9d9bb524.png"
-                ]
-            ]
-        ];
-        
         return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
@@ -225,7 +214,7 @@ class DefaultController extends AbstractController
         return $response;
     }
 
-    #[Route('/variacion/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
+    #[Route('/variacion/{uuid}.png', name: 'app_variacion', methods: ['GET'])]
     public function getVariacion(string $uuid, ManagerRegistry $doctrine): Response
     {
         $variacion = $doctrine->getRepository(Variacion::class)->find($uuid);
