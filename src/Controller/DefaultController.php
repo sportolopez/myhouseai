@@ -178,23 +178,33 @@ class DefaultController extends AbstractController
     #[Route('/status/{uuid}', name: 'homepage')]
     public function status(string $uuid, ImagenRepository $imagenRepository): JsonResponse
     {
-        /*
         $imagen = $imagenRepository->find($uuid);
-
+    
         if (!$imagen) {
             return new Response('Image not found', Response::HTTP_NOT_FOUND);
         }
-        */
+    
+        $fechaGeneracion = $imagen->getFecha();
+        $fechaActual = new \DateTime();
+        $diferenciaSegundos = $fechaActual->getTimestamp() - $fechaGeneracion->getTimestamp();
+    
+        // Calcula el progreso en función de la diferencia de tiempo
+        $progreso = min($diferenciaSegundos / 4, 1); // Máximo 1 después de 1 minuto
+        
+        $status = "rendering";
+        if($progreso == 1)
+            $status = "done";
+
         $response = [
             "render_id" => $uuid,
-            "status" => "rendering",
-            "created_at" => 1685742540902, // epoch timestamp
-            "outputs" => [], // will contain output image urls if status == "done". Will an entry for each new variation.
-            "progress" => 0.7432000000000001, // number 0-1
+            "status" => $status,
+            "created_at" => $fechaGeneracion->getTimestamp() * 1000, // epoch timestamp en milisegundos
+            "outputs" => [], // Contendrá URLs de imágenes si status == "done". Habrá una entrada para cada nueva variación.
+            "progress" => $progreso, // número 0-1
             "outputs_room_types" => [],
             "outputs_styles"=> []
         ];
-        return new JsonResponse($response, 200);;
+        return new JsonResponse($response, 200);
     }
 
     #[Route('/consultar/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
