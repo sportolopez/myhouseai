@@ -50,6 +50,15 @@ class DefaultController extends AbstractController
         $entityManager = $doctrine->getManager();
         
         $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
+
+        usort($imagenes, function($a, $b) {
+            return $b->getFecha()->getTimestamp() - $a->getFecha()->getTimestamp();
+        });
+    
+        // Tomar las primeras 20 imágenes
+        $imagenes = array_slice($imagenes, 0, 20);
+
+
         $url = "http://comomequeda.com.ar/myhouseai/public/consultar/";
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
@@ -59,7 +68,9 @@ class DefaultController extends AbstractController
             $variacionesIds = array_map(function($variacion) {
                 return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png";
             }, $variaciones);
-            $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png", "variaciones" => $variacionesIds];
+            $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png",
+                                'render_id' => $imagen->getId(),
+                                'fecha' => $imagen->getFecha(), "variaciones" => $variacionesIds];
         }
         
         $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
