@@ -35,7 +35,15 @@ class ImagenRepository extends ServiceEntityRepository
 //            ->getResult()
 //        ;
 //    }
-
+        public function findByUsuarioEmail(string $email): array
+        {
+            return $this->createQueryBuilder('i')
+            ->innerJoin('i.Usuario', 'u')
+            ->andWhere('u.email = :email')
+            ->setParameter('email', $email)
+            ->getQuery()
+            ->getResult();
+        }
         public function findByUsuarioId(int $usuarioId): array
         {
             return $this->createQueryBuilder('i')

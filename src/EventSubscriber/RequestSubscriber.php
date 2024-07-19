@@ -25,7 +25,7 @@ class RequestSubscriber implements EventSubscriberInterface
     
 
         // Proteger solo ciertas rutas
-        $protectedRoutes = ['generar'];
+        $protectedRoutes = ['generar','historial'];
         if (!in_array($routeName, $protectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
@@ -51,6 +51,7 @@ class RequestSubscriber implements EventSubscriberInterface
         // Decodificar el JWT
         try {
             $payload = JWT::decode($tokenJwt, new Key('secret_key', 'HS256'));
+
             // Agregar el payload a la solicitud para que esté disponible en el controlador
             $request->attributes->set('jwt_payload', $payload);
         } catch (\Exception $e) {

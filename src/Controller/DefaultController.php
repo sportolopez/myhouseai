@@ -43,13 +43,14 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
-    public function historial(ManagerRegistry $doctrine): Response
+    public function historial(ManagerRegistry $doctrine,Request $request,ImagenRepository $imagenRepository): Response
     {
         // Implementa la lógica de obtención del historial aquí
         
         $entityManager = $doctrine->getManager();
         
-        $imagenes = $entityManager->getRepository(Imagen::class)->findByUsuarioId(1);
+        $jwtPayload = $request->attributes->get('jwt_payload');
+        $imagenes = $imagenRepository->findByUsuarioEmail($jwtPayload->token_info->email);
 
         usort($imagenes, function($a, $b) {
             return $b->getFecha()->getTimestamp() - $a->getFecha()->getTimestamp();
@@ -70,7 +71,7 @@ class DefaultController extends AbstractController
             }, $variaciones);
             $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png",
                                 'render_id' => $imagen->getId(),
-                                'fecha' => $imagen->getFecha(), "variaciones" => $variacionesIds];
+                                'fecha' => $imagen->getFecha()->format('d/m/Y H:i:s'), "variaciones" => $variacionesIds];
         }
         
         $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
@@ -128,7 +129,8 @@ class DefaultController extends AbstractController
     {
         $entityManager = $doctrine->getManager();
         //TODO: el usuario tiene que venir del token
-        $usuario = $usuarioRepository->find(1);
+        $jwtPayload = $request->attributes->get('jwt_payload');
+        $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
@@ -194,6 +196,8 @@ class DefaultController extends AbstractController
         if (!$imagen) {
             return new Response('Image not found', Response::HTTP_NOT_FOUND);
         }
+
+        
     
         $fechaGeneracion = $imagen->getFecha();
         $fechaActual = new \DateTime();
@@ -206,11 +210,18 @@ class DefaultController extends AbstractController
         if($progreso == 1)
             $status = "done";
 
+
+        $variaciones = $imagen->getVariaciones()->toArray();
+        
+        $variacionesIds = array_map(function($variacion) {
+            return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png";
+        }, $variaciones);
+        
         $response = [
             "render_id" => $uuid,
             "status" => $status,
             "created_at" => $fechaGeneracion->getTimestamp() * 1000, // epoch timestamp en milisegundos
-            "outputs" => [], // Contendrá URLs de imágenes si status == "done". Habrá una entrada para cada nueva variación.
+            "outputs" => $variacionesIds, // Contendrá URLs de imágenes si status == "done". Habrá una entrada para cada nueva variación.
             "progress" => $progreso, // número 0-1
             "outputs_room_types" => [],
             "outputs_styles"=> []
