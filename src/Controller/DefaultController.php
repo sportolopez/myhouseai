@@ -84,7 +84,6 @@ class DefaultController extends AbstractController
     {
         
         $data = json_decode($request->getContent(), true);
-        error_log("entro al login");
         $accessToken = $data['access_token'] ?? null;
 
         // Implementa la lógica de validación del token aquí
@@ -94,18 +93,18 @@ class DefaultController extends AbstractController
         $usuarioLogueado = $usuarioRepository->findOneByEmail($user_info['email']);
 
         if(!$usuarioLogueado){
-            $nuevoUsuario = new Usuario();
-            $nuevoUsuario->setEmail($user_info['email']);
-            $nuevoUsuario->setNombre($user_info['name']);
-            $nuevoUsuario->setCantidadImagenesDisponibles(10);
+            $usuarioLogueado = new Usuario();
+            $usuarioLogueado->setEmail($user_info['email']);
+            $usuarioLogueado->setNombre($user_info['name']);
+            $usuarioLogueado->setCantidadImagenesDisponibles(10);
             $entityManager = $doctrine->getManager();
-            $entityManager->persist($nuevoUsuario);
+            $entityManager->persist($usuarioLogueado);
             $entityManager->flush();
         }
        
         // Ejemplo de uso
         $token_info = $user_info;
-
+        $token_info['userId'] = $usuarioLogueado->getId();
         $secret_key = 'secret_key';
         $payload = array(
             "token_info" => $token_info
@@ -212,9 +211,18 @@ class DefaultController extends AbstractController
 
 
         $variaciones = $imagen->getVariaciones()->toArray();
+
+        usort($variaciones, function($a, $b) {
+            // Invertir el operador de comparación para obtener un orden descendente
+            return $b->getFecha() <=> $a->getFecha();
+        });
         
         $variacionesIds = array_map(function($variacion) {
-            return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png";
+            return [
+                "url" => "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png",
+                "variacion_id" => $variacion->getId(),
+                "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s') // Formato de fecha legible
+            ];
         }, $variaciones);
         
         $response = [
