@@ -24,6 +24,12 @@ class Variacion
     #[ORM\Column(type: Types::BLOB)]
     private $img = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $roomType = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $style = null;
+
     public function getId(): ?string
     {
         return $this->id;
@@ -68,6 +74,30 @@ class Variacion
     public function setImg($img): static
     {
         $this->img = $img;
+
+        return $this;
+    }
+
+    public function getRoomType(): ?string
+    {
+        return $this->roomType;
+    }
+
+    public function setRoomType(string $roomType): static
+    {
+        $this->roomType = $roomType;
+
+        return $this;
+    }
+
+    public function getStyle(): ?string
+    {
+        return $this->style;
+    }
+
+    public function setStyle(string $style): static
+    {
+        $this->style = $style;
 
         return $this;
     }

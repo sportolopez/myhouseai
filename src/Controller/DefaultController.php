@@ -22,25 +22,8 @@ use App\Service\Utils;
 class DefaultController extends AbstractController
 {
 
-    #[Route('/{any}', name: 'app_options', requirements: ['any' => '.*'], methods: ['OPTIONS'])]
-    public function options(): JsonResponse
-    {
-        $response = new JsonResponse();
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        return $response;
-    }
-    
 
-    
 
-    #[Route('/', name: 'homepage')]
-    public function index(): Response
-    {
-        error_reporting(E_ALL ^ E_DEPRECATED);
-        return new Response('<html><body>Hola Mundoaaaaaaaaaa</body></html>');
-    }
 
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
     public function historial(ManagerRegistry $doctrine,Request $request,ImagenRepository $imagenRepository): Response
@@ -138,12 +121,18 @@ class DefaultController extends AbstractController
             return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id']);
         }
 
+        if(!$data['roomType'] || !$data['style'])
+            return new JsonResponse(['error' => 'Se tiene que enviar roomType y style']);
+
         if(isset($data['generation_id'])){
             $imagen = $imagenRepository->find($data['generation_id']);
+
             if(!$imagen)
                 return new JsonResponse(['error' => 'No se encontro una imagen con ese generation_id']);
 
-            $variacion = $apiClientService->generarVariacion($imagen);
+
+            
+            $variacion = $apiClientService->generarVariacion($imagen,$data['generation_id'],$data['roomType'],$data['style']);
             $entityManager->persist($variacion);
             $entityManager->flush();
             return new JsonResponse(['generation_id' => $imagen->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
@@ -167,8 +156,8 @@ class DefaultController extends AbstractController
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
         $imagen->setUsuario($usuario);
-        $imagen->setEstilo($data['theme']);
-        $imagen->setTipoHabitacion($data['room_type']);
+        $imagen->setEstilo($data['style']);
+        $imagen->setTipoHabitacion($data['roomType']);
         $imagen->setFecha( new DateTime());
         $entityManager->persist($imagen);
         $entityManager->flush();
@@ -272,31 +261,6 @@ class DefaultController extends AbstractController
     }
 
 
-    #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
-    public function createPayment(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        // Validar y procesar los datos recibidos
-        $transactionAmount = $data['transaction_amount'] ?? null;
-        $token = $data['token'] ?? null;
-        $installments = $data['installments'] ?? null;
-        $paymentMethodId = $data['payment_method_id'] ?? null;
-        $issuerId = $data['issuer_id'] ?? null;
-        $payerEmail = $data['payer']['email'] ?? null;
-
-        if (!$transactionAmount || !$token || !$installments || !$paymentMethodId || !$issuerId || !$payerEmail) {
-            return new JsonResponse(['error' => 'Invalid input'], 400);
-        }
-
-        // Simular la creación del pago (en un caso real, aquí se llamaría a la API de MercadoPago)
-        $paymentResponse = [
-            'id' => '123456789',
-            'status' => 'approved'
-        ];
-
-        return new JsonResponse($paymentResponse, 200);
-    }
 
 
     #[Route('/parametria', name: 'parametria', methods: ['GET'])]
