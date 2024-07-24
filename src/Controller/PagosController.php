@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Controller;
+use App\Repository\UsuarioRepository;
 use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Exceptions\MPApiException;
+use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\MercadoPagoConfig;
@@ -13,16 +15,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PagosController extends AbstractController{
 
-    #[Route('/', name: '_holamundo_', methods: ['GET'])]
-    public function holamundo(): Response
-    {
-        error_reporting(E_ALL ^ E_DEPRECATED);
-        return new Response('<html><body>Hola Mundoaaaaaaaaaa</body></html>');
-    }
-
     #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
-    public function processPayment(Request $request): JsonResponse
+    public function processPayment(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository): JsonResponse
     {
+        $entityManager = $doctrine->getManager();
+        $jwtPayload = $request->attributes->get('jwt_payload');
+        $usuario = $usuarioRepository->findOneBy(['id' => $jwtPayload->token_info->userId]);
+
         // Obtener datos de la solicitud
         $data = $request->toArray();
     
@@ -53,6 +52,10 @@ class PagosController extends AbstractController{
             // Realizar la solicitud
             $payment = $client->create($request, $request_options);
     
+            $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+10);
+            $entityManager->persist($usuario);
+            $entityManager->flush();
+            
             return new JsonResponse($request);
     
         } catch (MPApiException $e) {
