@@ -28,7 +28,7 @@ class ApiClientService
         $unaVariacion = new Variacion();
         $unaVariacion->setImagen($imagen);
         $unaVariacion->setFecha(new \DateTime());
-        $unaVariacion->setRoomType($roomType  );
+        $unaVariacion->setRoomType($roomType );
         $unaVariacion->setStyle($style);
         //El id que viene del servicio
         $unaVariacion->setId(Uuid::uuid4()->toString());

@@ -26,11 +26,8 @@ class DefaultController extends AbstractController
 
 
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
-    public function historial(ManagerRegistry $doctrine,Request $request,ImagenRepository $imagenRepository): Response
+    public function historial(Request $request,ImagenRepository $imagenRepository): Response
     {
-        // Implementa la lógica de obtención del historial aquí
-        
-        $entityManager = $doctrine->getManager();
         
         $jwtPayload = $request->attributes->get('jwt_payload');
         $imagenes = $imagenRepository->findByUsuarioEmail($jwtPayload->token_info->email);
@@ -62,55 +59,11 @@ class DefaultController extends AbstractController
         return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
-    #[Route('/login', name: 'app_login', methods: ['POST'])]
-    public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine): JsonResponse
-    {
-        
-        $data = json_decode($request->getContent(), true);
-        $accessToken = $data['access_token'] ?? null;
-
-        // Implementa la lógica de validación del token aquí
-        
-        $user_info = Utils::validateAccessToken($accessToken);
-
-        $usuarioLogueado = $usuarioRepository->findOneByEmail($user_info['email']);
-
-        if(!$usuarioLogueado){
-            $usuarioLogueado = new Usuario();
-            $usuarioLogueado->setEmail($user_info['email']);
-            $usuarioLogueado->setNombre($user_info['name']);
-            $usuarioLogueado->setCantidadImagenesDisponibles(10);
-            $entityManager = $doctrine->getManager();
-            $entityManager->persist($usuarioLogueado);
-            $entityManager->flush();
-        }
-       
-        // Ejemplo de uso
-        $token_info = $user_info;
-        $token_info['userId'] = $usuarioLogueado->getId();
-        $secret_key = 'secret_key';
-        $payload = array(
-            "token_info" => $token_info
-        );
-    
-        $jwt = JWT::encode($payload, $secret_key, 'HS256');
-    
-        $token =  array(
-            'jwt_token' => $jwt,
-            'userInfo' => $token_info
-        );
-        error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
-
-        return new JsonResponse($token,200);
-        
-
-    }
-
+ 
     #[Route('/generar', name: 'app_generar', methods: ['POST'])]
     public function generar(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, ImagenRepository $imagenRepository, ApiClientService $apiClientService, VariacionRepository $variacionRepository): JsonResponse
     {
         $entityManager = $doctrine->getManager();
-        //TODO: el usuario tiene que venir del token
         $jwtPayload = $request->attributes->get('jwt_payload');
         $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
@@ -124,6 +77,9 @@ class DefaultController extends AbstractController
         if(!$data['roomType'] || !$data['style'])
             return new JsonResponse(['error' => 'Se tiene que enviar roomType y style']);
 
+
+
+            
         if(isset($data['generation_id'])){
             $imagen = $imagenRepository->find($data['generation_id']);
 
@@ -206,22 +162,22 @@ class DefaultController extends AbstractController
             return $b->getFecha() <=> $a->getFecha();
         });
         
-        $variacionesIds = array_map(function($variacion) {
+        $variacionesIds = array_map(function(Variacion $variacion) {
             return [
                 "url" => "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png",
                 "variacion_id" => $variacion->getId(),
-                "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s') // Formato de fecha legible
+                "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s'),
+                "room_type" => $variacion->getRoomType(),
+                "style" => $variacion->getStyle(),
             ];
         }, $variaciones);
         
         $response = [
             "render_id" => $uuid,
             "status" => $status,
-            "created_at" => $fechaGeneracion->getTimestamp() * 1000, // epoch timestamp en milisegundos
+            "fecha_creacion" => $fechaGeneracion->format('Y-m-d H:i:s'), // epoch timestamp en milisegundos
             "outputs" => $variacionesIds, // Contendrá URLs de imágenes si status == "done". Habrá una entrada para cada nueva variación.
-            "progress" => $progreso, // número 0-1
-            "outputs_room_types" => [],
-            "outputs_styles"=> []
+            "progress" => $progreso
         ];
         return new JsonResponse($response, 200);
     }

@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Repository\UsuarioRepository;
 use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Exceptions\MPApiException;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\MercadoPagoConfig;
@@ -20,7 +20,7 @@ class PagosController extends AbstractController{
     {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
-        $usuario = $usuarioRepository->findOneBy(['id' => $jwtPayload->token_info->userId]);
+        $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
         // Obtener datos de la solicitud
         $data = $request->toArray();
@@ -37,12 +37,10 @@ class PagosController extends AbstractController{
             $request = [
                 "transaction_amount" => $data['transaction_amount'],
                 "token" => $data['token'],
-                "description" => $data['description'],
+                "description" => 'Compra de fotos',
                 "installments" => $data['installments'],
                 "payment_method_id" => $data['payment_method_id'],
-                "payer" => [
-                    "email" => $data['payer_email'],
-                ]
+                "payer.email" => $data['payer']['email']
             ];
     
             // Crear las opciones de solicitud, estableciendo X-Idempotency-Key
