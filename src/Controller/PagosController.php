@@ -38,9 +38,12 @@ class PagosController extends AbstractController{
                 "transaction_amount" => $data['transaction_amount'],
                 "token" => $data['token'],
                 "description" => 'Compra de fotos',
-                "installments" => $data['installments'],
+                "installments" => 1,
                 "payment_method_id" => $data['payment_method_id'],
-                "payer.email" => $data['payer']['email']
+                "issuer_id" => $data['issuer_id'],
+                "payer" => [
+                    "email" => $data['payer']['email'],
+                ]
             ];
     
             // Crear las opciones de solicitud, estableciendo X-Idempotency-Key
