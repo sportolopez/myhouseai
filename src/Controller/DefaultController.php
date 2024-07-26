@@ -73,7 +73,7 @@ class DefaultController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['image']) && !isset($data['generation_id'])) {
-            return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id']);
+            return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         if(!$data['roomType'] || !$data['style'])
