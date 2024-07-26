@@ -56,7 +56,7 @@ class PagosController extends AbstractController{
     
             $payment = $client->create($request, $request_options);
     
-            $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+10);
+            $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+1);
             $entityManager->persist($usuario);
             $entityManager->flush();
             

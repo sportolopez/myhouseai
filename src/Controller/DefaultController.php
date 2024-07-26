@@ -67,6 +67,8 @@ class DefaultController extends AbstractController
         $jwtPayload = $request->attributes->get('jwt_payload');
         $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
+        if($usuario->getCantidadImagenesDisponibles()<1)
+            return new JsonResponse(['error' => 'Te quedaste sin imagenes bb']);
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
 
