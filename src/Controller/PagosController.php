@@ -43,6 +43,10 @@ class PagosController extends AbstractController{
                 "issuer_id" => $data['issuer_id'],
                 "payer" => [
                     "email" => $data['payer']['email'],
+                    "identification"=> [
+                        "type"=> "DNI",
+                        "number"=> "12312312"
+                    ]
                 ]
             ];
     
@@ -50,14 +54,13 @@ class PagosController extends AbstractController{
             $request_options = new RequestOptions();
             $request_options->setCustomHeaders(["X-Idempotency-Key: " . uniqid()]);
     
-            // Realizar la solicitud
             $payment = $client->create($request, $request_options);
     
             $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+10);
             $entityManager->persist($usuario);
             $entityManager->flush();
             
-            return new JsonResponse($request);
+            return new JsonResponse($payment);
     
         } catch (MPApiException $e) {
             return new JsonResponse([
