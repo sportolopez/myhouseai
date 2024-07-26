@@ -60,7 +60,7 @@ class PagosController extends AbstractController{
             $entityManager->persist($usuario);
             $entityManager->flush();
             
-            return new JsonResponse($payment);
+            return new JsonResponse(['cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()]);
     
         } catch (MPApiException $e) {
             return new JsonResponse([
