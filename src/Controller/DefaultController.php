@@ -40,14 +40,14 @@ class DefaultController extends AbstractController
         $imagenes = array_slice($imagenes, 0, 20);
 
 
-        $url = "http://comomequeda.com.ar/myhouseai/public/consultar/";
+        $url = "/api/consultar/";
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
             //$variaciones = $entityManager->getRepository(Variacion::class)->findByImagen($imagen);
             $variaciones = $imagen->getVariaciones()->toArray();
             
             $variacionesIds = array_map(function($variacion) {
-                return  "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png";
+                return  "/api/variacion/" . $variacion->getId() . ".png";
             }, $variaciones);
             $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png",
                                 'render_id' => $imagen->getId(),
