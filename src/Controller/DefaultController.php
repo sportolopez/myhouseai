@@ -67,10 +67,12 @@ class DefaultController extends AbstractController
         $jwtPayload = $request->attributes->get('jwt_payload');
         $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
-        if($usuario->getCantidadImagenesDisponibles()<1)
-            return new JsonResponse(['error' => 'Te quedaste sin imagenes'],Response::HTTP_FORBIDDEN);
+
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
+
+        if($usuario->getCantidadImagenesDisponibles()<1 && isset($data['image']))
+            return new JsonResponse(['error' => 'Te quedaste sin imagenes'],Response::HTTP_FORBIDDEN);
 
         if (!isset($data['image']) && !isset($data['generation_id'])) {
             return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id'],
