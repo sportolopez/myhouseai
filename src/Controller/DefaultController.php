@@ -167,7 +167,7 @@ class DefaultController extends AbstractController
         
         $variacionesIds = array_map(function(Variacion $variacion) {
             return [
-                "url" => "http://comomequeda.com.ar/myhouseai/public/variacion/" . $variacion->getId() . ".png",
+                "url" => "/api/variacion/" . $variacion->getId() . ".png",
                 "variacion_id" => $variacion->getId(),
                 "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s'),
                 "room_type" => $variacion->getRoomType(),
