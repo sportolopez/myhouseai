@@ -43,12 +43,26 @@ class DefaultController extends AbstractController
         $url = "/api/consultar/";
         $imagenesArray = [];
         foreach ($imagenes as $imagen) {
-            //$variaciones = $entityManager->getRepository(Variacion::class)->findByImagen($imagen);
+
             $variaciones = $imagen->getVariaciones()->toArray();
+
+            usort($variaciones, function($a, $b) {
+                // Invertir el operador de comparación para obtener un orden descendente
+                return $b->getFecha() <=> $a->getFecha();
+            });
             
-            $variacionesIds = array_map(function($variacion) {
-                return  "/api/variacion/" . $variacion->getId() . ".png";
+            $variacionesIds = array_map(function(Variacion $variacion) {
+                return [
+                    "url" => "/api/variacion/" . $variacion->getId() . ".png",
+                    "variacion_id" => $variacion->getId(),
+                    "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s'),
+                    "room_type" => $variacion->getRoomType(),
+                    "style" => $variacion->getStyle(),
+                ];
             }, $variaciones);
+            
+
+
             $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png",
                                 'render_id' => $imagen->getId(),
                                 'fecha' => $imagen->getFecha()->format('d/m/Y H:i:s'), "variaciones" => $variacionesIds];
