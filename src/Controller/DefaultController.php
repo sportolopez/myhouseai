@@ -49,7 +49,6 @@ class DefaultController extends AbstractController
         $url = "/api/consultar/";
         
         foreach ($imagenes as $imagen) {
-
             $variaciones = $imagen->getVariaciones()->toArray();
 
             usort($variaciones, function($a, $b) {

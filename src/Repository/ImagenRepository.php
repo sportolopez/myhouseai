@@ -37,21 +37,52 @@ class ImagenRepository extends ServiceEntityRepository
 //    }
         public function findByUsuarioEmail(string $email): array
         {
-            return $this->createQueryBuilder('i')
-            ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion') // Especifica aquí los campos que necesitas
+            $query = $this->createQueryBuilder('i')
+            ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion')
             ->innerJoin('i.Usuario', 'u')
             ->andWhere('u.email = :email')
             ->setParameter('email', $email)
-            ->getQuery()
-            ->getResult();
+            ->getQuery();
+        
+            $resultados = $query->getArrayResult();
+            
+            $imagenes = [];
+            
+            foreach ($resultados as $resultado) {
+                $imagen = new Imagen();
+                $imagen->setId($resultado['id']);
+                $imagen->setFecha($resultado['fecha']);
+                $imagen->setEstilo($resultado['estilo']);
+                $imagen->setTipoHabitacion($resultado['tipoHabitacion']);
+                
+                // No establezcas imgOrigen, o establece un valor por defecto
+                $imagenes[] = $imagen;
+            }
+            return $imagenes;
         }
         public function findByUsuarioId(int $usuarioId): array
         {
-            return $this->createQueryBuilder('i')
+            $query = $this->createQueryBuilder('i')
             ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion') // Especifica aquí los campos que necesitas
             ->andWhere('i.Usuario = :usuarioId')
             ->setParameter('usuarioId', $usuarioId)
             ->getQuery()
             ->getResult();
+
+            $resultados = $query->getArrayResult();
+            
+            $imagenes = [];
+            
+            foreach ($resultados as $resultado) {
+                $imagen = new Imagen();
+                $imagen->setId($resultado['id']);
+                $imagen->setFecha($resultado['fecha']);
+                $imagen->setEstilo($resultado['estilo']);
+                $imagen->setTipoHabitacion($resultado['tipoHabitacion']);
+                
+                // No establezcas imgOrigen, o establece un valor por defecto
+                $imagenes[] = $imagen;
+            }
+            return $imagenes;
         }
 }
