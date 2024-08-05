@@ -38,6 +38,7 @@ class ImagenRepository extends ServiceEntityRepository
         public function findByUsuarioEmail(string $email): array
         {
             return $this->createQueryBuilder('i')
+            ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion') // Especifica aquí los campos que necesitas
             ->innerJoin('i.Usuario', 'u')
             ->andWhere('u.email = :email')
             ->setParameter('email', $email)
@@ -47,6 +48,7 @@ class ImagenRepository extends ServiceEntityRepository
         public function findByUsuarioId(int $usuarioId): array
         {
             return $this->createQueryBuilder('i')
+            ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion') // Especifica aquí los campos que necesitas
             ->andWhere('i.Usuario = :usuarioId')
             ->setParameter('usuarioId', $usuarioId)
             ->getQuery()
