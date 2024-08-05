@@ -31,6 +31,12 @@ class DefaultController extends AbstractController
         
         $jwtPayload = $request->attributes->get('jwt_payload');
         $imagenes = $imagenRepository->findByUsuarioEmail($jwtPayload->token_info->email);
+        $imagenesArray = [];
+
+        if (empty($imagenes)) {
+
+            return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+        } 
 
         usort($imagenes, function($a, $b) {
             return $b->getFecha()->getTimestamp() - $a->getFecha()->getTimestamp();
@@ -41,7 +47,7 @@ class DefaultController extends AbstractController
 
 
         $url = "/api/consultar/";
-        $imagenesArray = [];
+        
         foreach ($imagenes as $imagen) {
 
             $variaciones = $imagen->getVariaciones()->toArray();
