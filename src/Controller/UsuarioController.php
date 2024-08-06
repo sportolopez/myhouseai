@@ -44,6 +44,7 @@ class UsuarioController extends AbstractController{
         // Ejemplo de uso
         $token_info = $user_info;
         $token_info['userId'] = $usuarioLogueado->getId();
+        $token_info['cantidadImagenesDisponibles'] = $usuarioLogueado->getCantidadImagenesDisponibles();
         $secret_key = 'secret_key';
         $payload = array(
             "token_info" => $token_info
