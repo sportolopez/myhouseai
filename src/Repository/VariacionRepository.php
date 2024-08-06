@@ -35,10 +35,19 @@ class VariacionRepository extends ServiceEntityRepository
 //            ->getResult()
 //        ;
 //    }
-
-    public function findByImagen($value): ?array
+public function findByImagen($value): ?array
+{
+    return $this->createQueryBuilder('v')
+        ->andWhere('v.imagen = :val')
+        ->setParameter('val', $value)
+        ->getQuery()
+        ->getResult()
+    ;
+}
+    public function findByImagenSinBlob($value): ?array
     {
         return $this->createQueryBuilder('v')
+            ->select('v.id, v.fecha, v.roomType, v.style')
             ->andWhere('v.imagen = :val')
             ->setParameter('val', $value)
             ->getQuery()

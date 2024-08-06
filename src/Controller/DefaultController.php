@@ -26,7 +26,7 @@ class DefaultController extends AbstractController
 
 
     #[Route('/historial', name: 'app_historial', methods: ['GET'])]
-    public function historial(Request $request,ImagenRepository $imagenRepository): Response
+    public function historial(Request $request,ImagenRepository $imagenRepository,VariacionRepository $variacionRepository): Response
     {
         
         $jwtPayload = $request->attributes->get('jwt_payload');
@@ -49,20 +49,20 @@ class DefaultController extends AbstractController
         $url = "/api/consultar/";
         
         foreach ($imagenes as $imagen) {
-            $variaciones = $imagen->getVariaciones()->toArray();
+            $variaciones = $variacionRepository->findByImagenSinBlob($imagen->getId());
 
             usort($variaciones, function($a, $b) {
                 // Invertir el operador de comparación para obtener un orden descendente
                 return $b->getFecha() <=> $a->getFecha();
             });
             
-            $variacionesIds = array_map(function(Variacion $variacion) {
+            $variacionesIds = array_map(function(Array $variacion) {
                 return [
-                    "url" => "/api/variacion/" . $variacion->getId() . ".png",
-                    "variacion_id" => $variacion->getId(),
-                    "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s'),
-                    "room_type" => $variacion->getRoomType(),
-                    "style" => $variacion->getStyle(),
+                    "url" => "/api/variacion/" . $variacion['id'] . ".png",
+                    "variacion_id" =>$variacion['id'] ,
+                    "fecha" => $variacion['fecha']->format('Y-m-d H:i:s'),
+                    "room_type" => $variacion['roomType'],
+                    "style" => $variacion['style'],
                 ];
             }, $variaciones);
             
@@ -73,7 +73,6 @@ class DefaultController extends AbstractController
                                 'fecha' => $imagen->getFecha()->format('d/m/Y H:i:s'), "variaciones" => $variacionesIds];
         }
         
-        $jsonResponse = json_encode($imagenesArray, JSON_UNESCAPED_SLASHES);
         
         return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
@@ -162,7 +161,7 @@ class DefaultController extends AbstractController
         $imagen = $imagenRepository->find($uuid);
     
         if (!$imagen) {
-            return new Response('Image not found', Response::HTTP_NOT_FOUND);
+            return new JsonResponse('Image not found', Response::HTTP_NOT_FOUND);
         }
 
         
