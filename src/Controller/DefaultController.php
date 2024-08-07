@@ -53,7 +53,7 @@ class DefaultController extends AbstractController
 
             usort($variaciones, function($a, $b) {
                 // Invertir el operador de comparación para obtener un orden descendente
-                return $b->getFecha() <=> $a->getFecha();
+                return $b['fecha'] <=> $a['fecha'];
             });
             
             $variacionesIds = array_map(function(Array $variacion) {
