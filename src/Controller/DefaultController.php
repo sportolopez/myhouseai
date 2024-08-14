@@ -102,7 +102,7 @@ class DefaultController extends AbstractController
 
 
 
-            
+        //genero variacion
         if(isset($data['generation_id'])){
             $imagen = $imagenRepository->find($data['generation_id']);
 
@@ -111,9 +111,8 @@ class DefaultController extends AbstractController
 
 
             
-            $variacion = $apiClientService->generarVariacion($imagen,$data['generation_id'],$data['roomType'],$data['style']);
-            $entityManager->persist($variacion);
-            $entityManager->flush();
+            $apiClientService->crearVariacionParaRender($data['generation_id'],$data['roomType'],$data['style']);
+            
             return new JsonResponse(['generation_id' => $imagen->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
         }
 
@@ -128,9 +127,6 @@ class DefaultController extends AbstractController
         // Generar un UUID para el nombre de la imagen
         $uuid = Uuid::uuid4()->toString();
         
-
-
-        
         $imagen = new Imagen();
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
@@ -141,22 +137,21 @@ class DefaultController extends AbstractController
         $entityManager->persist($imagen);
         $entityManager->flush();
 
-        $variacion = $apiClientService->generarImagen($imagen);
+        $renderId = $apiClientService->generarImagen($imagen);
+        $imagen->setRenderId($renderId);
 
-        
-        $entityManager->persist($variacion);
-       
+        $entityManager->persist($imagen);
+        $entityManager->flush();
+
         $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()-1);
-
         $entityManager->persist($usuario);
-
         $entityManager->flush();
 
         return new JsonResponse(['generation_id' => $uuid,'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
 
     #[Route('/status/{uuid}', name: 'homepage')]
-    public function status(string $uuid, ImagenRepository $imagenRepository): JsonResponse
+    public function status(string $uuid, ImagenRepository $imagenRepository,ApiClientService $apiClientService): JsonResponse
     {
         $imagen = $imagenRepository->find($uuid);
     
@@ -164,8 +159,25 @@ class DefaultController extends AbstractController
             return new JsonResponse('Image not found', Response::HTTP_NOT_FOUND);
         }
 
-        
-    
+
+        $response = $apiClientService->getRender($imagen);
+
+        /*
+        if($response->status == "done"){
+            //Guardar variacion
+            $unaVariacion = new Variacion();
+            $unaVariacion->setImagen($imagen);
+            $unaVariacion->setFecha(new \DateTime());
+            $unaVariacion->setRoomType($imagen->getTipoHabitacion());
+            $unaVariacion->setStyle($$imagen->getEstilo());
+            //El id que viene del servicio
+            $unaVariacion->setId(Uuid::uuid4()->toString());
+            //Imagen obtenida
+            $unaVariacion->setImg($imagen->getImgOrigen());
+
+        }
+        */
+        /*
         $fechaGeneracion = $imagen->getFecha();
         $fechaActual = new \DateTime();
         $diferenciaSegundos = $fechaActual->getTimestamp() - $fechaGeneracion->getTimestamp();
@@ -194,14 +206,7 @@ class DefaultController extends AbstractController
                 "style" => $variacion->getStyle(),
             ];
         }, $variaciones);
-        
-        $response = [
-            "render_id" => $uuid,
-            "status" => $status,
-            "fecha_creacion" => $fechaGeneracion->format('Y-m-d H:i:s'), // epoch timestamp en milisegundos
-            "outputs" => $variacionesIds, // Contendrá URLs de imágenes si status == "done". Habrá una entrada para cada nueva variación.
-            "progress" => $progreso
-        ];
+        */
         return new JsonResponse($response, 200);
     }
 

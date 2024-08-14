@@ -34,6 +34,9 @@ class Imagen
     #[ORM\OneToMany(mappedBy: 'imagen', targetEntity: Variacion::class)]
     private Collection $variaciones;
 
+    #[ORM\Column(length: 255)]
+    private ?string $renderId = null;
+
     public function __construct()
     {
         $this->variaciones = new ArrayCollection();
@@ -158,5 +161,17 @@ class Imagen
             $this->tipoHabitacion,
             implode(', ', $variacionesStr)
         );
+    }
+
+    public function getRenderId(): ?string
+    {
+        return $this->renderId;
+    }
+
+    public function setRenderId(string $renderId): static
+    {
+        $this->renderId = $renderId;
+
+        return $this;
     }
 }
