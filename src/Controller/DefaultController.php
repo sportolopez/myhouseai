@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Variacion;
 use App\Repository\ImagenRepository;
+use App\Repository\PlanesRepository;
 use App\Repository\UsuarioRepository;
 use App\Repository\VariacionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -121,7 +122,7 @@ class DefaultController extends AbstractController
         // Decodificar la imagen base64
         $imageData = base64_decode($base64Image);
         if ($imageData === false) {
-            return new JsonResponse(['error' => 'Invalid base64 image data'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'Invalid base64 image data'], Response::HTTP_BAD_REQUEST);
         }
 
         // Generar un UUID para el nombre de la imagen
@@ -162,21 +163,22 @@ class DefaultController extends AbstractController
 
         $response = $apiClientService->getRender($imagen);
 
-        /*
+
+        
         if($response->status == "done"){
             //Guardar variacion
             $unaVariacion = new Variacion();
             $unaVariacion->setImagen($imagen);
             $unaVariacion->setFecha(new \DateTime());
             $unaVariacion->setRoomType($imagen->getTipoHabitacion());
-            $unaVariacion->setStyle($$imagen->getEstilo());
+            $unaVariacion->setStyle($imagen->getEstilo());
             //El id que viene del servicio
             $unaVariacion->setId(Uuid::uuid4()->toString());
             //Imagen obtenida
             $unaVariacion->setImg($imagen->getImgOrigen());
 
         }
-        */
+        
         /*
         $fechaGeneracion = $imagen->getFecha();
         $fechaActual = new \DateTime();
@@ -188,25 +190,22 @@ class DefaultController extends AbstractController
         $status = "rendering";
         if($progreso == 1)
             $status = "done";
-
-
-        $variaciones = $imagen->getVariaciones()->toArray();
-
-        usort($variaciones, function($a, $b) {
-            // Invertir el operador de comparación para obtener un orden descendente
-            return $b->getFecha() <=> $a->getFecha();
-        });
-        
-        $variacionesIds = array_map(function(Variacion $variacion) {
-            return [
-                "url" => "/api/variacion/" . $variacion->getId() . ".png",
-                "variacion_id" => $variacion->getId(),
-                "fecha" => $variacion->getFecha()->format('Y-m-d H:i:s'),
-                "room_type" => $variacion->getRoomType(),
-                "style" => $variacion->getStyle(),
-            ];
-        }, $variaciones);
         */
+
+        foreach ($response->outputs as $index => $output) {
+            $variacion = [
+                "url" => $output,
+                "room_type" => $response->outputs_room_types[$index] ?? null,
+                "style" => $response->outputs_room_types[$index] ?? null,
+            ];
+        
+            $variaciones[] = $variacion;
+        }
+
+        $response->variaciones = $variaciones;
+        unset($response->outputs);
+        unset($response->outputs_styles);
+        unset($response->outputs_room_types);
         return new JsonResponse($response, 200);
     }
 
@@ -248,37 +247,32 @@ class DefaultController extends AbstractController
 
 
     #[Route('/parametria', name: 'parametria', methods: ['GET'])]
-    public function parametria(Request $request): JsonResponse
+    public function parametria(Request $request, PlanesRepository $planesRepository): JsonResponse
     {
-        $data = [
-            "styles" => [
-                "modern",
-                "scandinavian",
-                "industrial",
-                "midcentury",
-                "luxury",
-                "farmhouse",
-                "coastal",
-                "standard"
-            ],
-            "roomTypes" => [
-                "living",
-                "bed",
-                "kitchen",
-                "dining",
-                "bathroom",
-                "home_office"
-            ],
-            "precios" => [
-                "10 imagenes: 50",
-                "100 imagenes: 50",
-                "500 imagenes: 50"
-            ]
-
-        ];
+        $listaPlanes = $planesRepository->findAll();
         
+        $response = [
+        "styles" => [
+            "modern",
+            "scandinavian",
+            "industrial",
+            "midcentury",
+            "luxury",
+            "farmhouse",
+            "coastal",
+            "standard"
+        ],
+        "roomTypes" => [
+            "living",
+            "bed",
+            "kitchen",
+            "dining",
+            "bathroom",
+            "home_office"
+        ],
+        'planes' => $listaPlanes];
 
-        return new JsonResponse($data, 200);
+        return new JsonResponse($response, 200);
     }
 
 

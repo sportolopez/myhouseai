@@ -1,0 +1,23 @@
+RewriteEngine on
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:CDN-LOOP} !cloudflare
+RewriteCond %{REQUEST_URI} !^/.well-known/acme-challenge/
+RewriteCond %{HTTP_HOST} ^(www\.)?myhouseai\.com
+RewriteCond %{HTTP_HOST} ^(www\.)?myhouseai\.com.ar
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,QSA]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    # Asegurarse de que solo se reescriban las solicitudes que comienzan con /api/
+    RewriteCond %{REQUEST_URI} ^/api/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Reescribir la URI eliminando el prefijo /api/ y redirigiendo a /myhouseai/public/index.php
+    RewriteRule ^api/(.*)$ /myhouseai/public/ [QSA,L]
+
+    # Redirigir todo lo demás a /front/build/
+    RewriteCond %{REQUEST_URI} !^/front/build/
+    RewriteCond %{REQUEST_URI} !^/myhouseai/public/
+    RewriteRule ^(.*)$ /front/build/$1 [L]
+</IfModule>
