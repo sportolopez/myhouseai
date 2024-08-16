@@ -202,8 +202,8 @@ class DefaultController extends AbstractController
             $variaciones[] = $variacion;
         }
 
-        $response->variaciones = $variaciones;
-        unset($response->outputs);
+        $response->outputs = $variaciones;
+        //unset($response->outputs);
         unset($response->outputs_styles);
         unset($response->outputs_room_types);
         return new JsonResponse($response, 200);
