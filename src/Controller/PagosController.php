@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Controller;
+use App\Entity\Planes;
+use App\Repository\PlanesRepository;
 use App\Repository\UsuarioRepository;
 use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Exceptions\MPApiException;
@@ -16,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 class PagosController extends AbstractController{
 
     #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
-    public function processPayment(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository): JsonResponse
+    public function processPayment(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, PlanesRepository  $planesRepository): JsonResponse
     {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
@@ -42,11 +44,7 @@ class PagosController extends AbstractController{
                 "payment_method_id" => $data['payment_method_id'],
                 "issuer_id" => $data['issuer_id'],
                 "payer" => [
-                    "email" => $data['payer']['email'],
-                    "identification"=> [
-                        "type"=> "DNI",
-                        "number"=> "12312312"
-                    ]
+                    "email" => $data['payer']['email']
                 ]
             ];
     
@@ -54,9 +52,16 @@ class PagosController extends AbstractController{
             $request_options = new RequestOptions();
             $request_options->setCustomHeaders(["X-Idempotency-Key: " . uniqid()]);
     
-            $payment = $client->create($request, $request_options);
     
-            $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+10);
+            $planComprado = $planesRepository->findOneByMonto($data['transaction_amount']);
+            if(!$planComprado){
+                return new JsonResponse(['error' => 'El monto no corresponde con un plan '], 500);
+            }
+
+            $payment = $client->create($request, $request_options);
+
+
+            $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()+$planComprado->getCantidad());
             $entityManager->persist($usuario);
             $entityManager->flush();
             
