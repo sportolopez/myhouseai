@@ -107,11 +107,11 @@ class PagosController extends AbstractController{
         // Fill the data about the product(s) being pruchased
         $product1 = array(
             "id" => "1234567890",
-            "title" => "Product 1 Title",
-            "description" => "Product 1 Description",
+            "title" => "Fotos en MyHouseAi",
+            "description" => "Fotos en MyHouseAi",
             "currency_id" => "ARS",
-            "quantity" => 12,
-            "unit_price" => 9.90
+            "quantity" => $data['quantity'],
+            "unit_price" => $data['unit-price']
         );
 
 
