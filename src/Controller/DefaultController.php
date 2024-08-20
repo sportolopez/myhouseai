@@ -51,6 +51,7 @@ class DefaultController extends AbstractController
         
         foreach ($imagenes as $imagen) {
             $variaciones = $variacionRepository->findByImagenSinBlob($imagen->getId());
+            
 
             usort($variaciones, function($a, $b) {
                 // Invertir el operador de comparación para obtener un orden descendente
@@ -139,6 +140,21 @@ class DefaultController extends AbstractController
         $entityManager->flush();
 
         $renderId = $apiClientService->generarImagen($imagen);
+
+        //Solo para que tincho no rompa
+        $unaVariacion = new Variacion();
+        $unaVariacion->setImagen($imagen);
+        $unaVariacion->setFecha(new DateTime());
+        $unaVariacion->setRoomType($imagen->getTipoHabitacion());
+        $unaVariacion->setStyle($imagen->getEstilo());
+        //El id que viene del servicio
+        $unaVariacion->setId(Uuid::uuid4()->toString());
+        //Imagen obtenida
+        $unaVariacion->setImg($imagen->getImgOrigen());
+
+        $entityManager->persist($unaVariacion);
+
+
         $imagen->setRenderId($renderId);
 
         $entityManager->persist($imagen);
