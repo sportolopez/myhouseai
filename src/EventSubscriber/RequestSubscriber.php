@@ -25,7 +25,7 @@ class RequestSubscriber implements EventSubscriberInterface
     
 
         // Proteger solo ciertas rutas
-        $protectedRoutes = ['generar','historial','process_payment','perfil'];
+        $protectedRoutes = ['generar','historial','process_payment','perfil','create_preference'];
         if (!in_array($routeName, $protectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
