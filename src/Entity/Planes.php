@@ -19,6 +19,9 @@ class Planes  implements \JsonSerializable
     #[ORM\Column]
     private ?float $valor = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $preferenceId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -52,6 +55,19 @@ class Planes  implements \JsonSerializable
         return [
             'cantidad' => $this->cantidad,
             'valor' => $this->valor,
+            'preferenceId' => $this->preferenceId
         ];
+    }
+
+    public function getPreferenceId(): ?string
+    {
+        return $this->preferenceId;
+    }
+
+    public function setPreferenceId(string $preferenceId): static
+    {
+        $this->preferenceId = $preferenceId;
+
+        return $this;
     }
 }

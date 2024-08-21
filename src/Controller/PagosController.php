@@ -106,7 +106,7 @@ class PagosController extends AbstractController{
 
         // Fill the data about the product(s) being pruchased
         $product1 = array(
-            "id" => "1234567890",
+            //"id" => "1234567890",
             "title" => "Fotos en MyHouseAi",
             "description" => "Fotos en MyHouseAi",
             "currency_id" => "ARS",
@@ -163,7 +163,7 @@ class PagosController extends AbstractController{
 
         $request = [
             "items" => $items,
-            "payer" => $payer,
+            //"payer" => $payer,
             "payment_methods" => $paymentMethods,
             "back_urls" => $backUrls,
             "statement_descriptor" => "NAME_DISPLAYED_IN_USER_BILLING",
