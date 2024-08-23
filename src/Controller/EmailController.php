@@ -107,7 +107,7 @@ class EmailController extends AbstractController
     public function testSendMail(
         Request $request
     ): JsonResponse {
-        $para = 'sebaporto@gmail.com';
+        $para = 'ventas@myhouseai.com; sporto@certant.com';
         $asunto = 'Prueba de correo con PHPMailer';
         $mensaje = '<html><body><h1>Hola!</h1><p>Este es un correo de prueba usando PHPMailer.</p></body></html>';
         
