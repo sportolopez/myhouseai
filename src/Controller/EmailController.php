@@ -54,7 +54,7 @@ class EmailController extends AbstractController
         foreach ($inmobiliarias as $inmobiliaria) {
             // Crear un nuevo registro de EmailEnviado
             $emailEnviado = new EmailEnviado();
-            $emailEnviado->setInmobiliariaId($inmobiliaria->getId());
+            $emailEnviado->setInmobiliaria($inmobiliaria);
             $emailEnviado->setEmailVersion('v1'); // Puedes ajustar según sea necesario
             $emailEnviado->setFecha(new \DateTime());
             $emailEnviado->setVisto(0); // Inicialmente no visto
@@ -114,59 +114,55 @@ class EmailController extends AbstractController
 
 
     #[Route('/test-emails', name: 'test_emails', methods: ['GET'])]
-    public function testSendMail(
-        Request $request
-    ): JsonResponse {
-        $para = 'sebaporto@gmail.com';
-        $asunto = 'Prueba de correo con PHPMailer';
-        $mensaje = '<html><body><h1>Hola!</h1><p>Este es un correo de prueba usando PHPMailer.</p></body></html>';
-        
-        self::enviarCorreo($para, $asunto, $mensaje);
+    public function testSendMail(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse {
 
-        return new JsonResponse(['message' => 'Emails sent successfully']);
-    }
-    function enviarCorreo($para, $asunto, $mensaje) {
-        $mail = new PHPMailer(true);
+        $inmobiliaria_id = $request->query->get('inmobiliaria_id'); 
+
+        $inmobiliarium = $inmobiliariaRepository->find($inmobiliaria_id);
     
-        $destinatario = ['id' => 1, 'email' => 'example1@example.com', 'nombre' => 'Nombre1', 'direccion' => 'Dirección1', 'ruta_imagen' => 'http://example.com/image1.jpg']
-        ;
-
-        $htmlContent = $this->twig->render('Email1.html.twig', [
-            'direccion' => $destinatario['direccion'],
-            'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/564/imagenOriginal.png',
-            'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/564/imagenGenerada.png',
+        if (!$inmobiliarium) {
+            throw $this->createNotFoundException('No se encontró la inmobiliaria con id ' . $inmobiliaria_id);
+        }
+    
+        $asunto = $request->query->get('asunto') . " " . $inmobiliarium->getDireccion(); 
+        $template = $request->query->get('template'); 
+        
+        $htmlContent = $this->twig->render($template . '.html.twig', [
+            'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenOriginal.png',
+            'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenGenerada.png',
             'pixel_url' => 'asdadasd'
         ]);
             
         print_r($htmlContent);
-        $asunto = "MyHouseAi :: Direccion ";
+        //$asunto = "MyHouseAi :: Direccion ";
+        $mail = new PHPMailer(true);
 
-        try {
-            // Configuración del servidor SMTP
-            $mail->isSMTP();
-            $mail->Host = 'c1802222.ferozo.com'; // Servidor SMTP
-            $mail->Port = 465; // Puerto SMTP (587 para TLS, 465 para SSL)
-            $mail->SMTPAuth = true;
-            $mail->Username = 'ventas@myhouseai.com'; // Usuario SMTP
-            $mail->Password = '@9JhcWsLVismDUcU4'; // Contraseña SMTP
-            $mail->SMTPSecure = 'ssl'; // 'ssl' o 'tls'
-    
-            // Remitente
-            $mail->setFrom('ventas@myhouseai.com', 'Ventassss');
-            $mail->addAddress('sebaporto@gmail.com'); // Destinatario
-            $mail->addAddress('moreiragmartin@gmail.com'); // Destinatario
-    
-            // Contenido
-            $mail->isHTML(true);
-            $mail->Subject = $asunto;
-            $mail->Body    = $htmlContent;
-    
-            $mail->send();
-            echo 'Correo enviado exitosamente.';
-        } catch (\Exception $e) {
-            echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
-        }
+        // Configuración del servidor SMTP
+        $mail->isSMTP();
+        $mail->Host = 'c1802222.ferozo.com'; // Servidor SMTP
+        $mail->Port = 465; // Puerto SMTP (587 para TLS, 465 para SSL)
+        $mail->SMTPAuth = true;
+        $mail->Username = 'ventas@myhouseai.com'; // Usuario SMTP
+        $mail->Password = '@9JhcWsLVismDUcU4'; // Contraseña SMTP
+        $mail->SMTPSecure = 'ssl'; // 'ssl' o 'tls'
+
+        // Remitente
+        $mail->setFrom('ventas@myhouseai.com', 'Martin');
+        $mail->addAddress('sebaporto@gmail.com'); // Destinatario
+        $mail->addAddress('moreiragmartin@gmail.com'); // Destinatario
+
+        // Contenido
+        $mail->isHTML(true);
+        $mail->Subject = $asunto;
+        $mail->Body    = $htmlContent;
+
+        $mail->send();
+        echo 'Correo enviado exitosamente.';
+        
+
+        return new JsonResponse(['message' => 'Emails sent successfully']);
     }
+
 
 
 }
