@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -106,27 +107,40 @@ class EmailController extends AbstractController
     public function testSendMail(
         Request $request
     ): JsonResponse {
-        $para = "sebaporto@gmail.com";
-        $asunto = "Prueba de correo en PHP";
-        $mensaje = "<html><body><h1>Hola!</h1><p>Este es un correo de prueba.</p></body></html>";
+        $para = 'sebaporto@gmail.com';
+        $asunto = 'Prueba de correo con PHPMailer';
+        $mensaje = '<html><body><h1>Hola!</h1><p>Este es un correo de prueba usando PHPMailer.</p></body></html>';
         
-        self::enviarEmail($para, $asunto, $mensaje);
+        self::enviarCorreo($para, $asunto, $mensaje);
 
         return new JsonResponse(['message' => 'Emails sent successfully']);
     }
-    function enviarEmail($para, $asunto, $mensaje) {
-        // Definir los encabezados del correo
-        $headers = "MIME-Version: 1.0" . "\r\n";
-        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        
-        // Encabezados adicionales, como el remitente
-        $headers .= 'From: ventas@myhouseai.com' . "\r\n";
+    function enviarCorreo($para, $asunto, $mensaje) {
+        $mail = new PHPMailer(true);
     
-        // Enviar el correo
-        if(mail($para, $asunto, $mensaje, $headers)) {
-            echo "Correo enviado exitosamente a $para";
-        } else {
-            echo "No se pudo enviar el correo a $para";
+        try {
+            // Configuración del servidor SMTP
+            $mail->isSMTP();
+            $mail->Host = 'c1802222.ferozo.com'; // Servidor SMTP
+            $mail->Port = 465; // Puerto SMTP (587 para TLS, 465 para SSL)
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ventas@myhouseai.com'; // Usuario SMTP
+            $mail->Password = '@9JhcWsLVismDUcU4'; // Contraseña SMTP
+            $mail->SMTPSecure = 'tls'; // 'ssl' o 'tls'
+    
+            // Remitente
+            $mail->setFrom('ventas@myhouseai.com', 'Ventassss');
+            $mail->addAddress($para); // Destinatario
+    
+            // Contenido
+            $mail->isHTML(true);
+            $mail->Subject = $asunto;
+            $mail->Body    = $mensaje;
+    
+            $mail->send();
+            echo 'Correo enviado exitosamente.';
+        } catch (\Exception $e) {
+            echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
         }
     }
 }
