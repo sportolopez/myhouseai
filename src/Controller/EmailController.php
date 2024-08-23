@@ -126,7 +126,7 @@ class EmailController extends AbstractController
             $mail->SMTPAuth = true;
             $mail->Username = 'ventas@myhouseai.com'; // Usuario SMTP
             $mail->Password = '@9JhcWsLVismDUcU4'; // Contraseña SMTP
-            $mail->SMTPSecure = 'tls'; // 'ssl' o 'tls'
+            $mail->SMTPSecure = 'ssl'; // 'ssl' o 'tls'
     
             // Remitente
             $mail->setFrom('ventas@myhouseai.com', 'Ventassss');
