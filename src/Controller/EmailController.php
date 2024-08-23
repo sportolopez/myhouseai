@@ -140,7 +140,7 @@ class EmailController extends AbstractController
         $htmlContent = $this->twig->render($template . '.html.twig', [
             'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenOriginal.png',
             'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenGenerada.png',
-            'pixel_url' => 'http://localhost/myhouseai/public/api/track-email/'.$emailEnviado->getId()
+            'pixel_url' => 'https://myhouseai.com/api/track-email/'.$emailEnviado->getId()
         ]);
             
         print_r($htmlContent);
