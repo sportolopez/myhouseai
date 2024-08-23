@@ -120,7 +120,7 @@ class EmailController extends AbstractController
         $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
         
         // Encabezados adicionales, como el remitente
-        $headers .= 'From: ventas@myhouseai.com.ar' . "\r\n";
+        $headers .= 'From: ventas@myhouseai.com' . "\r\n";
     
         // Enviar el correo
         if(mail($para, $asunto, $mensaje, $headers)) {
