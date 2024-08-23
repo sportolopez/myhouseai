@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inmobiliaria index{% endblock %}
+
+{% block body %}
+    <h1>Inmobiliaria index</h1>
+
+    <table class="table table-bordered" border=1>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Vistos</th>
+                <th>Fecha_ultimo_visto</th>
+                <th>Imagen Original</th>
+                <th>Upload Imagen Original</th>
+                <th>Imagen Limpia</th>
+                <th>Upload Imagen Limpia</th>
+                <th>Direccion</th>
+                <th>Email</th>
+                <th>Link_venta</th>
+                <th>Link_alquiler</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for inmobiliarium in inmobiliarias %}
+            <tr>
+                <td>{{ inmobiliarium.id }}</td>
+                <td>{{ inmobiliarium.nombre }}</td>
+                <td>{{ inmobiliarium.visto }}</td>
+                <td>{{ inmobiliarium.fechaUltimoVisto ? inmobiliarium.fechaUltimoVisto|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    {% if inmobiliarium.imagenEjemplo is not null %}
+                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagenEjemplo | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200">
+                    {% else %}
+                        Sin imagen
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="{{ path('app_inmobiliaria_upload_imagen',  {'id': inmobiliarium.id, 'tipoImagen': 'imagenEjemplo'}) }}" method="post" enctype="multipart/form-data">
+                        <input type="file" name="imagenEjemplo" required>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </td>
+                <td>
+                    {% if inmobiliarium.imagenGenerada is not null %}
+                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagenGenerada | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200    ">
+                    {% else %}
+                        Sin imagen
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="{{ path('app_inmobiliaria_upload_imagen', {'id': inmobiliarium.id, 'tipoImagen': 'imagenGenerada'}) }}" method="post" enctype="multipart/form-data">
+                        <input type="file" name="imagenGenerada" required>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </td>
+                <td>{{ inmobiliarium.direccion }}</td>
+                <td>{{ inmobiliarium.email }}</td>
+                <td><a href={{ inmobiliarium.linkVenta }}>Link</a></td>
+                <td><a href={{ inmobiliarium.linkAlquiler }}>Link</a></td>
+                <td>
+                    <a href="{{ path('app_inmobiliaria_show', {'id': inmobiliarium.id}) }}">show</a>
+                    <a href="{{ path('app_inmobiliaria_edit', {'id': inmobiliarium.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="12">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_inmobiliaria_new') }}">Create new</a>
+{% endblock %}

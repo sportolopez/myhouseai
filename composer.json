@@ -17,12 +17,17 @@
         "mercadopago/dx-php": "3.0.7",
         "nelmio/cors-bundle": "^2.5",
         "ramsey/uuid": "^4.7",
+        "sensio/framework-extra-bundle": "^6.2",
         "symfony/console": "6.0.*",
         "symfony/dotenv": "6.0.*",
         "symfony/flex": "^2",
+        "symfony/form": "6.0.*",
         "symfony/framework-bundle": "6.0.*",
         "symfony/http-kernel": "6.0.*",
         "symfony/runtime": "6.0.*",
+        "symfony/security-csrf": "6.0.*",
+        "symfony/twig-bundle": "6.0.*",
+        "symfony/validator": "6.0.*",
         "symfony/yaml": "6.0.*"
     },
     "config": {

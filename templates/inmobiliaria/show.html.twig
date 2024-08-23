@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inmobiliaria{% endblock %}
+
+{% block body %}
+    <h1>Inmobiliaria</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ inmobiliarium.id }}</td>
+            </tr>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ inmobiliarium.nombre }}</td>
+            </tr>
+            <tr>
+                <th>Visto</th>
+                <td>{{ inmobiliarium.visto }}</td>
+            </tr>
+            <tr>
+                <th>Fecha_ultimo_visto</th>
+                <td>{{ inmobiliarium.fechaUltimoVisto ? inmobiliarium.fechaUltimoVisto|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Imagen_ejemplo</th>
+                <td>{{ inmobiliarium.imagenEjemplo }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ inmobiliarium.email }}</td>
+            </tr>
+            <tr>
+                <th>Whatsapp</th>
+                <td>{{ inmobiliarium.whatsapp }}</td>
+            </tr>
+            <tr>
+                <th>Telefono</th>
+                <td>{{ inmobiliarium.telefono }}</td>
+            </tr>
+            <tr>
+                <th>Link_venta</th>
+                <td>{{ inmobiliarium.linkVenta }}</td>
+            </tr>
+            <tr>
+                <th>Link_alquiler</th>
+                <td>{{ inmobiliarium.linkAlquiler }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_inmobiliaria_index') }}">back to list</a>
+
+    <a href="{{ path('app_inmobiliaria_edit', {'id': inmobiliarium.id}) }}">edit</a>
+
+    {{ include('inmobiliaria/_delete_form.html.twig') }}
+{% endblock %}

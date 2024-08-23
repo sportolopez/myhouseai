@@ -45,4 +45,12 @@ class InmobiliariaRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+public function findAllOrderedByImagenEjemplo(): array
+{
+    return $this->createQueryBuilder('i')
+        ->orderBy('i.imagen_ejemplo', 'DESC') // Usa otro criterio si `imagenEjemplo` no es adecuado para ordenamiento
+        ->getQuery()
+        ->getResult();
+}
 }
