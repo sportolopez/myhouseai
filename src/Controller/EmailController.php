@@ -11,9 +11,19 @@ use Symfony\Component\Mime\Email;
 use App\Repository\InmobiliariaRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\EmailEnviado;
+use Twig\Environment;
 
 class EmailController extends AbstractController
 {
+    private $twig;
+    private $em;
+
+    public function __construct(Environment $twig, EntityManagerInterface $em)
+    {
+        $this->twig = $twig;
+        $this->em = $em;
+    }
+    
     #[Route('/send-emails', name: 'send_emails', methods: ['POST'])]
     public function sendEmails(
         Request $request,
@@ -118,6 +128,19 @@ class EmailController extends AbstractController
     function enviarCorreo($para, $asunto, $mensaje) {
         $mail = new PHPMailer(true);
     
+        $destinatario = ['id' => 1, 'email' => 'example1@example.com', 'nombre' => 'Nombre1', 'direccion' => 'Dirección1', 'ruta_imagen' => 'http://example.com/image1.jpg']
+        ;
+
+        $htmlContent = $this->twig->render('Email1.html.twig', [
+            'direccion' => $destinatario['direccion'],
+            'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/572/imagenOriginal.png',
+            'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/572/imagenGenerada.png',
+            'pixel_url' => 'asdadasd'
+        ]);
+            
+        print_r($htmlContent);
+        $asunto = "MyHouseAi :: Direccion ";
+
         try {
             // Configuración del servidor SMTP
             $mail->isSMTP();
@@ -130,12 +153,13 @@ class EmailController extends AbstractController
     
             // Remitente
             $mail->setFrom('ventas@myhouseai.com', 'Ventassss');
-            $mail->addAddress($para); // Destinatario
+            $mail->addAddress('sebaporto@gmail.com'); // Destinatario
+            $mail->addAddress('moreiragmartin@gmail.com'); // Destinatario
     
             // Contenido
             $mail->isHTML(true);
             $mail->Subject = $asunto;
-            $mail->Body    = $mensaje;
+            $mail->Body    = $htmlContent;
     
             $mail->send();
             echo 'Correo enviado exitosamente.';
@@ -143,4 +167,6 @@ class EmailController extends AbstractController
             echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
         }
     }
+
+
 }

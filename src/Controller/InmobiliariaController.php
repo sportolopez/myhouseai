@@ -108,5 +108,51 @@ class InmobiliariaController extends AbstractController
     
         return $this->redirectToRoute('app_inmobiliaria_index', [], Response::HTTP_SEE_OTHER);
     }
+
+
+    #[Route('/{id}/imagenOriginal.png', name: 'app_inmobiliaria_original', methods: ['GET'])]
+    #[Route('/{id}/imagenGenerada.png', name: 'app_inmobiliaria_generada', methods: ['GET'])]
+    public function imagenOriginal(Request $request, InmobiliariaRepository $inmobiliariaRepository, $id): Response
+    {
+        // Obtener la entidad inmobiliaria usando el ID
+        $inmobiliarium = $inmobiliariaRepository->find($id);
+        
+        if (!$inmobiliarium) {
+            throw $this->createNotFoundException('Inmobiliaria no encontrada.');
+        }
+
+        // Determinar qué imagen devolver
+        $imageType = $request->get('_route') === 'app_inmobiliaria_original' ? 'original' : 'generada';
+
+        if ($imageType === 'original') {
+            $imageContent = $inmobiliarium->getImagenEjemplo();
+        } else {
+            $imageContent = $inmobiliarium->getImagenGenerada();
+        }
+
+        // Verificar si el contenido es válido y convertir el recurso a una cadena si es necesario
+        if (is_resource($imageContent)) {
+            // Leer el contenido del recurso y convertirlo en una cadena
+            $imageContent = stream_get_contents($imageContent);
+        }
+
+        if ($imageContent === false || $imageContent === null) {
+            throw $this->createNotFoundException('Imagen no encontrada.');
+        }
+
+        // Determinar el tipo MIME (aquí asumimos que es PNG)
+        $mimeType = 'image/png';
+
+        // Crear la respuesta con el contenido de la imagen
+        $response = new Response($imageContent);
+        
+        // Establecer el Content-Type correctamente
+        $response->headers->set('Content-Type', $mimeType);
+
+        // Retornar la respuesta con el contenido de la imagen
+        return $response;
+    }
+
+
     
 }
