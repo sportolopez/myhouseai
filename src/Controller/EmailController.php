@@ -5,6 +5,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -88,19 +89,17 @@ class EmailController extends AbstractController
     }
 
     #[Route('/track-email/{id}', name: 'track_email', methods: ['GET'])]
-    public function trackEmail($id, EntityManagerInterface $entityManager): JsonResponse
+    public function trackEmail($id, EntityManagerInterface $entityManager): Response
     {
         $emailEnviado = $entityManager->getRepository(EmailEnviado::class)->find($id);
 
         if (!$emailEnviado) {
-            return new JsonResponse(['message' => 'Email not found'], 404);
+            return new Response(404);
         }
 
-        if ($emailEnviado->getVisto() === 0) {
-            $emailEnviado->setVisto(1);
-            $emailEnviado->setVistoFecha(new \DateTime());
-            $entityManager->flush();
-        }
+        $emailEnviado->setVisto(1);
+        $emailEnviado->setVistoFecha(new \DateTime());
+        $entityManager->flush();
 
         // Retornar una imagen en blanco de 1x1 píxel
         $response = new Response();
@@ -114,7 +113,7 @@ class EmailController extends AbstractController
 
 
     #[Route('/test-emails', name: 'test_emails', methods: ['GET'])]
-    public function testSendMail(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse {
+    public function testSendMail(Request $request, InmobiliariaRepository $inmobiliariaRepository,EntityManagerInterface $entityManager): JsonResponse {
 
         $inmobiliaria_id = $request->query->get('inmobiliaria_id'); 
 
@@ -127,10 +126,21 @@ class EmailController extends AbstractController
         $asunto = $request->query->get('asunto') . " " . $inmobiliarium->getDireccion(); 
         $template = $request->query->get('template'); 
         
+        $emailEnviado = new EmailEnviado();
+        $emailEnviado->setInmobiliaria($inmobiliarium);
+        $emailEnviado->setEmailVersion($template); // Puedes ajustar según sea necesario
+        $emailEnviado->setFecha(new \DateTime());
+        $emailEnviado->setVisto(0); // Inicialmente no visto
+        $emailEnviado->setVistoFecha(null);
+
+        $entityManager->persist($emailEnviado);
+        $entityManager->flush(); // Esto nos da el ID del nuevo correo enviado
+
+        
         $htmlContent = $this->twig->render($template . '.html.twig', [
             'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenOriginal.png',
             'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/'. $inmobiliaria_id .'/imagenGenerada.png',
-            'pixel_url' => 'asdadasd'
+            'pixel_url' => 'http://localhost/myhouseai/public/api/track-email/'.$emailEnviado->getId()
         ]);
             
         print_r($htmlContent);

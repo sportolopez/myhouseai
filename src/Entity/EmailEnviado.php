@@ -88,7 +88,7 @@ class EmailEnviado
         return $this->visto_fecha;
     }
 
-    public function setVistoFecha(\DateTimeInterface $visto_fecha): static
+    public function setVistoFecha(?\DateTimeInterface $visto_fecha): static
     {
         $this->visto_fecha = $visto_fecha;
 
