@@ -160,6 +160,7 @@ class EmailController extends AbstractController
         $mail->setFrom('ventas@myhouseai.com', 'Martin');
         $mail->addAddress('sebaporto@gmail.com'); // Destinatario
         $mail->addAddress('moreiragmartin@gmail.com'); // Destinatario
+        $mail->addAddress('sebaporto@hotmail.com'); // Destinatario
 
         // Contenido
         $mail->isHTML(true);
