@@ -156,6 +156,8 @@ class EmailController extends AbstractController
         $mail->Password = '@9JhcWsLVismDUcU4'; // Contraseña SMTP
         $mail->SMTPSecure = 'ssl'; // 'ssl' o 'tls'
 
+        $mail->CharSet = 'UTF-8';
+        
         // Remitente
         $mail->setFrom('martin@myhouseai.com', 'Martin');
         $mail->addAddress('sebaporto@gmail.com'); // Destinatario
