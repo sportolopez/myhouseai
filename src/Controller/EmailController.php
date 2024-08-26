@@ -157,7 +157,7 @@ class EmailController extends AbstractController
         $mail->SMTPSecure = 'ssl'; // 'ssl' o 'tls'
 
         // Remitente
-        $mail->setFrom('ventas@myhouseai.com', 'Martin');
+        $mail->setFrom('martin@myhouseai.com', 'Martin');
         $mail->addAddress('sebaporto@gmail.com'); // Destinatario
         $mail->addAddress('moreiragmartin@gmail.com'); // Destinatario
         $mail->addAddress('sebaporto@hotmail.com'); // Destinatariorio
