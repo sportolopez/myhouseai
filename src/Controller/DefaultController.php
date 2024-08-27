@@ -81,45 +81,48 @@ class DefaultController extends AbstractController
 
  
     #[Route('/generar', name: 'app_generar', methods: ['POST'])]
-    public function generar(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, ImagenRepository $imagenRepository, ApiClientService $apiClientService, VariacionRepository $variacionRepository): JsonResponse
-    {
+    public function generar(
+        ManagerRegistry $doctrine,
+        Request $request,
+        UsuarioRepository $usuarioRepository,
+        ImagenRepository $imagenRepository,
+        ApiClientService $apiClientService,
+        VariacionRepository $variacionRepository
+    ): JsonResponse {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
         $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
-
-
+    
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
-
-        if($usuario->getCantidadImagenesDisponibles()<1 && isset($data['image']))
-            return new JsonResponse(['error' => 'Te quedaste sin imagenes'],Response::HTTP_FORBIDDEN);
-
+    
+        if ($usuario->getCantidadImagenesDisponibles() < 1 && isset($data['image'])) {
+            return new JsonResponse(['error' => 'Te quedaste sin imágenes'], Response::HTTP_FORBIDDEN);
+        }
+    
         if (!isset($data['image']) && !isset($data['generation_id'])) {
-            return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id'],
-            Response::HTTP_INTERNAL_SERVER_ERROR);
+            return new JsonResponse(['error' => 'Se tiene que subir una imagen o un generation_id'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        if(!$data['roomType'] || !$data['style'])
+    
+        if (!$data['roomType'] || !$data['style']) {
             return new JsonResponse(['error' => 'Se tiene que enviar roomType y style']);
-
-
-
-        //genero variacion
-        if(isset($data['generation_id'])){
-            $imagen = $imagenRepository->find($data['generation_id']);
-
-            if(!$imagen)
-                return new JsonResponse(['error' => 'No se encontro una imagen con ese generation_id']);
-
-
-            
-            $apiClientService->crearVariacionParaRender($data['generation_id'],$data['roomType'],$data['style']);
-            
-            return new JsonResponse(['generation_id' => $imagen->getId(),'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
         }
-
+    
+        // Generar variación
+        if (isset($data['generation_id'])) {
+            $imagen = $imagenRepository->find($data['generation_id']);
+    
+            if (!$imagen) {
+                return new JsonResponse(['error' => 'No se encontró una imagen con ese generation_id']);
+            }
+    
+            $apiClientService->crearVariacionParaRender($data['generation_id'], $data['roomType'], $data['style']);
+    
+            return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
+        }
+    
         $base64Image = $data['image'];
-        
+    
         // Decodificar la imagen base64
         $imageData = base64_decode($base64Image);
         if ($imageData === false) {
@@ -128,44 +131,45 @@ class DefaultController extends AbstractController
 
         // Generar un UUID para el nombre de la imagen
         $uuid = Uuid::uuid4()->toString();
-        
+    
         $imagen = new Imagen();
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
         $imagen->setUsuario($usuario);
         $imagen->setEstilo($data['style']);
         $imagen->setTipoHabitacion($data['roomType']);
-        $imagen->setFecha( new DateTime());
+        $imagen->setFecha(new DateTime());
         $entityManager->persist($imagen);
         $entityManager->flush();
-
+    
         $renderId = $apiClientService->generarImagen($imagen);
-
-        //Solo para que tincho no rompa
+    
+        // Solo para que tincho no rompa
         $unaVariacion = new Variacion();
         $unaVariacion->setImagen($imagen);
         $unaVariacion->setFecha(new DateTime());
         $unaVariacion->setRoomType($imagen->getTipoHabitacion());
         $unaVariacion->setStyle($imagen->getEstilo());
-        //El id que viene del servicio
+        // El id que viene del servicio
         $unaVariacion->setId(Uuid::uuid4()->toString());
-        //Imagen obtenida
+        // Imagen obtenida
         $unaVariacion->setImg($imagen->getImgOrigen());
-
+    
         $entityManager->persist($unaVariacion);
 
-
+    
         $imagen->setRenderId($renderId);
-
+    
         $entityManager->persist($imagen);
         $entityManager->flush();
-
-        $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles()-1);
+    
+        $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles() - 1);
         $entityManager->persist($usuario);
         $entityManager->flush();
-
-        return new JsonResponse(['generation_id' => $uuid,'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
+    
+        return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
+    
 
     #[Route('/status/{uuid}', name: 'homepage')]
     public function status(string $uuid, ImagenRepository $imagenRepository,ApiClientService $apiClientService): JsonResponse
@@ -292,6 +296,50 @@ class DefaultController extends AbstractController
     }
 
 
+    #[Route('/notificaciones', name: 'notificaciones', methods: ['GET'])]
+    public function notificaciones(): JsonResponse
+    {
+        $botToken = "7293637587:AAF9cQYXsPlLl5ufJ8YgARydPbuGeTcLhyk";
+        $apiUrl = "https://api.telegram.org/bot$botToken/getUpdates";
+        $chatId = "-4539412661";
+        $message = "¡Hola! Este es un mensaje enviado desde un bot de Telegram usando PHP.";
+
+        $telegramApiUrl = "https://api.telegram.org/bot$botToken/sendMessage";
+
+        // Datos a enviar
+        $data = [
+            'chat_id' => $chatId,
+            'text' => $message
+        ];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($data),
+            ],
+        ];
+
+        $context  = stream_context_create($options);
+
+        // Realizar la solicitud a la API de Telegram
+        $result = file_get_contents($telegramApiUrl, false, $context);
+
+        // Verificar el resultado
+        if ($result === FALSE) {
+           return new JsonResponse( "Error al enviar el mensaje", 200);
+        } else {
+            return new JsonResponse( "Mensaje enviado correctamente", 200);
+        }
+        
+    }
+
+    #[Route('/ping', name: 'ping', methods: ['GET'])]
+    public function ping(ApiClientService $apiClientService): JsonResponse
+    {
+        return new JsonResponse( $apiClientService->getPing(), 200);
+       
+    }
 
     
 

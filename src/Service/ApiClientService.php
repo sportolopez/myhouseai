@@ -8,13 +8,19 @@ use Exception;
 use Ramsey\Uuid\Uuid;
 
 class ApiClientService
+
 {
+    //const URL_API = "https://api.virtualstagingai.app/";
     const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
+    
     const URL_IMG = "http://myhouseai.com/api/consultar/";
-    const API_KEY = "23423423423";
+    const API_KEY = "vsai-pk-4865cd6f-9460-412c-8200-5bf1c9e95843";
 
     private function executeCurlRequest($url, $method, $postFields = null, $headers = [])
     {
+
+        $headers = ['Authorization: Api-Key ' .self::API_KEY];
+
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => $url,
@@ -26,7 +32,7 @@ class ApiClientService
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_POSTFIELDS => $postFields,
-            CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $headers),
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
         ]);
@@ -36,11 +42,26 @@ class ApiClientService
         if ($response === false) {
             $error = curl_error($curl);
             curl_close($curl);
-            throw new Exception("cURL Error: " . $error);
+            throw new Exception("cURL Error: " . $error );
         }
 
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
         curl_close($curl);
-        return json_decode($response);
+
+        // Verificar si el código de respuesta HTTP es 200
+        if ($httpCode !== 200) {
+            throw new Exception("Error HTTP: Código de respuesta " . $httpCode . " Url:" . $url);
+        }
+
+        $responseObject = json_decode($response);
+
+        // Verificar si hubo un error al decodificar el JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Error al decodificar JSON: ' . json_last_error_msg());
+        }
+
+        return $responseObject;
     }
 
     public function generarImagen(Imagen $imagen)
@@ -53,10 +74,6 @@ class ApiClientService
         ]);
 
         $responseObject = $this->executeCurlRequest(self::URL_API . 'v1/render/create', 'POST', $postFields);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Error al decodificar JSON: ' . json_last_error_msg());
-        }
 
         return $responseObject->render_id ?? null;
     }
@@ -72,6 +89,27 @@ class ApiClientService
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception('Error al decodificar JSON: ' . json_last_error_msg());
+        }
+
+        return $responseObject;
+    }
+
+    public function getPing()
+    {
+        $url = self::URL_API . 'v1/ping';
+
+        // Ejecuta la solicitud cURL y obtiene la respuesta cruda
+        $responseObject = $this->executeCurlRequest($url, 'GET');
+
+        
+        // Verifica si hubo un error al decodificar el JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Obtiene el mensaje de error y el JSON crudo que se intentó decodificar
+            $errorMsg = 'Error al decodificar JSON: ' . json_last_error_msg();
+            $debugInfo = 'JSON que se intentó decodificar: ' . $responseRaw;
+
+            // Lanza una excepción con ambos detalles
+            throw new Exception($errorMsg . ' - ' . $debugInfo);
         }
 
         return $responseObject;
