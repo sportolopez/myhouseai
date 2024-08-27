@@ -10,10 +10,10 @@ use Ramsey\Uuid\Uuid;
 class ApiClientService
 
 {
-    //const URL_API = "https://api.virtualstagingai.app/";
-    const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
+    const URL_API = "https://api.virtualstagingai.app/";
+    //const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
     
-    const URL_IMG = "http://myhouseai.com/api/consultar/";
+    const URL_IMG = "https://myhouseai.com/api/consultar/";
     const API_KEY = "vsai-pk-4865cd6f-9460-412c-8200-5bf1c9e95843";
 
     private function executeCurlRequest($url, $method, $postFields = null, $headers = [])
@@ -47,6 +47,10 @@ class ApiClientService
 
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
+        // Registrar la solicitud y la respuesta
+        $this->logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response);
+
+
         curl_close($curl);
 
         // Verificar si el código de respuesta HTTP es 200
@@ -66,10 +70,12 @@ class ApiClientService
 
     public function generarImagen(Imagen $imagen)
     {
-        $imageUrl = self::URL_IMG . $imagen->getId();
+        $imageUrl = self::URL_IMG . $imagen->getId() . ".png";
         $postFields = json_encode([
             'image_url' => $imageUrl,
             'room_type' => $imagen->getTipoHabitacion(),
+            'wait_for_completion' => false,
+            'declutter_mode' => true,
             'style' => $imagen->getEstilo()
         ]);
 
@@ -136,4 +142,20 @@ class ApiClientService
 
     }
 
+    private function logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response)
+    {
+        // Crear el mensaje de log
+        $logMessage = sprintf(
+            "URL: %s\nMétodo: %s\nEncabezados: %s\nDatos de Solicitud: %s\nCódigo HTTP: %d\nRespuesta: %s\n\n",
+            $url,
+            $method,
+            json_encode($headers),
+            json_encode($postFields),
+            $httpCode,
+            $response
+        );
+
+        // Escribir el mensaje en el archivo de log de errores
+        error_log($logMessage);
+    }
 }
