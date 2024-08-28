@@ -6,6 +6,7 @@ use App\Entity\Imagen;
 use App\Entity\Variacion;
 use Exception;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ApiClientService
 
@@ -19,7 +20,7 @@ class ApiClientService
     private function executeCurlRequest($url, $method, $postFields = null, $headers = [])
     {
 
-        $headers = ['Authorization: Api-Key ' .self::API_KEY];
+        $headers = ['Authorization: Api-Key ' .self::API_KEY,'Content-Type: application/json'];
 
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -55,7 +56,8 @@ class ApiClientService
 
         // Verificar si el código de respuesta HTTP es 200
         if ($httpCode !== 200) {
-            throw new Exception("Error HTTP: Código de respuesta " . $httpCode . " Url:" . $url);
+            throw new HttpException($httpCode,$response);
+            
         }
 
         $responseObject = json_decode($response);
@@ -81,13 +83,16 @@ class ApiClientService
 
         $responseObject = $this->executeCurlRequest(self::URL_API . 'v1/render/create', 'POST', $postFields);
 
-        return $responseObject->render_id ?? null;
+        if(!$responseObject->render_id)
+            throw new Exception('No tiene render ID: ' . print_r($responseObject, true));
+
+        return $responseObject->render_id;
     }
 
     public function getRender(Imagen $imagen)
     {
         $queryParams = [
-            'room_type' => $imagen->getRenderId()
+            'render_id' => $imagen->getRenderId()
         ];
         $url = self::URL_API . 'v1/render?' . http_build_query($queryParams);
 
@@ -107,16 +112,7 @@ class ApiClientService
         // Ejecuta la solicitud cURL y obtiene la respuesta cruda
         $responseObject = $this->executeCurlRequest($url, 'GET');
 
-        
-        // Verifica si hubo un error al decodificar el JSON
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // Obtiene el mensaje de error y el JSON crudo que se intentó decodificar
-            $errorMsg = 'Error al decodificar JSON: ' . json_last_error_msg();
-            $debugInfo = 'JSON que se intentó decodificar: ' . $responseRaw;
 
-            // Lanza una excepción con ambos detalles
-            throw new Exception($errorMsg . ' - ' . $debugInfo);
-        }
 
         return $responseObject;
     }
@@ -124,7 +120,7 @@ class ApiClientService
     public function crearVariacionParaRender(String $renderId, String $roomType, String $style, bool $waitForCompletion = false, bool $addWatermark = false, bool $switchToQueuedImmediately = true)
     {
         $postFields = json_encode([
-            'wait_for_completion' => '$waitForCompletion',
+            'wait_for_completion' => $waitForCompletion,
             'roomType' => $roomType,
             'style' => $style,
             'add_virtually_staged_watermark' => $addWatermark,
@@ -136,9 +132,7 @@ class ApiClientService
 
         $responseObject = $this->executeCurlRequest($url, 'POST', $postFields, $headers);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Error al decodificar JSON: ' . json_last_error_msg());
-        }
+        return $responseObject;
 
     }
 

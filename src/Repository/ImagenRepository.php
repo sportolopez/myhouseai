@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Imagen;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -84,5 +85,30 @@ class ImagenRepository extends ServiceEntityRepository
                 $imagenes[] = $imagen;
             }
             return $imagenes;
+        }
+
+        public function findOneById(String $id): ?Imagen
+        {
+            $query = $this->createQueryBuilder('i')
+                ->select('i.id, i.fecha, i.estilo, i.tipoHabitacion, i.renderId') // Especifica los campos que necesitas
+                ->where('i.id = :id')
+                ->setParameter('id', $id)
+                ->getQuery();
+    
+            $result = $query->getOneOrNullResult();
+    
+            if ($result === null) {
+                throw new \Exception("No se encontro la imagen $id");
+            }
+    
+            // Crear una instancia de Imagen y asignar manualmente los valores
+            $imagen = new Imagen();
+            $imagen->setId($result['id']);
+            $imagen->setFecha($result['fecha']);
+            $imagen->setEstilo($result['estilo']);
+            $imagen->setTipoHabitacion($result['tipoHabitacion']);
+            $imagen->setRenderId($result['renderId']);
+    
+            return $imagen;
         }
 }

@@ -35,15 +35,15 @@ class VariacionRepository extends ServiceEntityRepository
 //            ->getResult()
 //        ;
 //    }
-public function findByImagen($value): ?array
-{
-    return $this->createQueryBuilder('v')
-        ->andWhere('v.imagen = :val')
-        ->setParameter('val', $value)
-        ->getQuery()
-        ->getResult()
-    ;
-}
+    public function findByImagen($value): ?array
+    {
+        return $this->createQueryBuilder('v')
+            ->andWhere('v.imagen = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
     public function findByImagenSinBlob($value): ?array
     {
         return $this->createQueryBuilder('v')
@@ -54,4 +54,54 @@ public function findByImagen($value): ?array
             ->getResult()
         ;
     }
+
+    public function findOneByIdSinImagen(String $value): Variacion
+    {
+        $query = $this->createQueryBuilder('v')
+            ->select('v.id, v.fecha, v.roomType, v.style')
+            ->andWhere('v.imagen = :val')
+            ->setParameter('val', $value)
+            ->getQuery();
+
+        $result = $query->getOneOrNullResult();
+
+        if ($result === null) {
+            throw new \Exception("No se encontro la imagen $value");
+        }
+
+        // Crear una instancia de Imagen y asignar manualmente los valores
+        $variacion = new Variacion();
+        $variacion->setId($result['id']);
+        $variacion->setFecha($result['fecha']);
+        $variacion->setStyle($result['style']);
+        $variacion->setRoomType($result['roomType']);
+
+        return $variacion;
+    }
+
+
+    public function findByIdSinImagen(String $value): Variacion
+    {
+        $query = $this->createQueryBuilder('v')
+            ->select('v.id, v.fecha, v.roomType, v.style')
+            ->andWhere('v.imagen = :val')
+            ->setParameter('val', $value)
+            ->getQuery();
+
+        $result = $query->getOneOrNullResult();
+
+        if ($result === null) {
+            throw new \Exception("No se encontro la imagen $value");
+        }
+
+        // Crear una instancia de Imagen y asignar manualmente los valores
+        $variacion = new Variacion();
+        $variacion->setId($result['id']);
+        $variacion->setFecha($result['fecha']);
+        $variacion->setStyle($result['style']);
+        $variacion->setRoomType($result['roomType']);
+
+        return $variacion;
+    }
 }
+
