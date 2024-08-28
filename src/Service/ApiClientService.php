@@ -77,7 +77,7 @@ class ApiClientService
             'wait_for_completion' => false,
             'declutter_mode' => true,
             'style' => $imagen->getEstilo()
-        ]);
+        ], JSON_UNESCAPED_SLASHES);
 
         $responseObject = $this->executeCurlRequest(self::URL_API . 'v1/render/create', 'POST', $postFields);
 
