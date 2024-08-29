@@ -35,7 +35,7 @@ class UsuarioController extends AbstractController{
             $usuarioLogueado = new Usuario();
             $usuarioLogueado->setEmail($user_info['email']);
             $usuarioLogueado->setNombre($user_info['name']);
-            $usuarioLogueado->setCantidadImagenesDisponibles(10);
+            $usuarioLogueado->setCantidadImagenesDisponibles(0);
             $entityManager = $doctrine->getManager();
             $entityManager->persist($usuarioLogueado);
             $entityManager->flush();
