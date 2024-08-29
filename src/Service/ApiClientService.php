@@ -77,7 +77,7 @@ class ApiClientService
             'image_url' => $imageUrl,
             'room_type' => $imagen->getTipoHabitacion(),
             'wait_for_completion' => false,
-            'declutter_mode' => true,
+            'declutter_mode' => 'auto',
             'style' => $imagen->getEstilo()
         ], JSON_UNESCAPED_SLASHES);
 
