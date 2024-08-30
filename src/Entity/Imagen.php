@@ -31,15 +31,11 @@ class Imagen
     #[ORM\Column(length: 255)]
     private ?string $tipoHabitacion = null;
 
-    #[ORM\OneToMany(mappedBy: 'imagen', targetEntity: Variacion::class)]
-    private Collection $variaciones;
-
     #[ORM\Column(length: 255)]
     private ?string $renderId = null;
 
     public function __construct()
     {
-        $this->variaciones = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -115,53 +111,6 @@ class Imagen
         return $this;
     }
 
-    /**
-     * @return Collection<int, Variacion>
-     */
-    public function getVariaciones(): Collection
-    {
-        return $this->variaciones;
-    }
-
-    public function addVariacione(Variacion $variacione): static
-    {
-        if (!$this->variaciones->contains($variacione)) {
-            $this->variaciones->add($variacione);
-            $variacione->setImagen($this);
-        }
-
-        return $this;
-    }
-
-    public function removeVariacione(Variacion $variacione): static
-    {
-        if ($this->variaciones->removeElement($variacione)) {
-            // set the owning side to null (unless already changed)
-            if ($variacione->getImagen() === $this) {
-                $variacione->setImagen(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function __toString(): string
-    {
-        $variacionesStr = array_map(function($variacion) {
-            return $variacion->getId();
-        }, $this->variaciones->toArray());
-
-        return sprintf(
-            "ID: %s, Imagen Origen: %s, Usuario: %s, Fecha: %s, Estilo: %s, Tipo Habitación: %s, Variaciones: [%s]",
-            $this->id,
-            $this->imgOrigen,
-            $this->Usuario ? $this->Usuario->getId() : 'N/A',
-            $this->fecha ? $this->fecha->format('Y-m-d H:i:s') : 'N/A',
-            $this->estilo,
-            $this->tipoHabitacion,
-            implode(', ', $variacionesStr)
-        );
-    }
 
     public function getRenderId(): ?string
     {

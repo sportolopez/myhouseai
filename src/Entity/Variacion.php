@@ -13,10 +13,8 @@ class Variacion
     #[ORM\Column(type: Types::GUID)]
     private ?string $id = null;
 
-
-    #[ORM\ManyToOne(inversedBy: 'variaciones')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Imagen $imagen = null;
+    #[ORM\Column(type: Types::GUID)]
+    private ?string $imagenId = null; // Almacena solo el ID de la imagen
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fecha = null;
@@ -42,14 +40,14 @@ class Variacion
         return $this;
     }
 
-    public function getImagen(): ?Imagen
+    public function getImagenId(): ?string
     {
-        return $this->imagen;
+        return $this->imagenId;
     }
 
-    public function setImagen(?Imagen $imagen): static
+    public function setImagenId(?string $imagenId): static
     {
-        $this->imagen = $imagen;
+        $this->imagenId = $imagenId;
 
         return $this;
     }

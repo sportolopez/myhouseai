@@ -232,8 +232,9 @@ class DefaultController extends AbstractController
 
     
                 // Crear y guardar una nueva variación
+  
                 $unaVariacion = new Variacion();
-                $unaVariacion->setImagen($imagen);
+                $unaVariacion->setImagenId($imagen->getId());
                 $unaVariacion->setFecha(new DateTime());
                 $unaVariacion->setRoomType($response->outputs_room_types[$index] ?? null);
                 $unaVariacion->setStyle($response->outputs_styles[$index] ?? null);
@@ -242,7 +243,7 @@ class DefaultController extends AbstractController
     
                 // Persistir la variación en la base de datos
                 $entityManager->persist($unaVariacion);
-                $entityManager->flush();
+
                 $variacion = [
                     "url" => "/variacion/".$unaVariacion->getId().".png",
                     "room_type" => $unaVariacion->getRoomType(),

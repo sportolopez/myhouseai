@@ -38,7 +38,7 @@ class VariacionRepository extends ServiceEntityRepository
     public function findByImagen($value): ?array
     {
         return $this->createQueryBuilder('v')
-            ->andWhere('v.imagen = :val')
+            ->andWhere('v.imagenId = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getResult()
@@ -48,7 +48,7 @@ class VariacionRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('v')
             ->select('v.id, v.fecha, v.roomType, v.style')
-            ->andWhere('v.imagen = :val')
+            ->andWhere('v.imagenId = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getResult()
@@ -59,7 +59,7 @@ class VariacionRepository extends ServiceEntityRepository
     {
         $query = $this->createQueryBuilder('v')
             ->select('v.id, v.fecha, v.roomType, v.style')
-            ->andWhere('v.imagen = :val')
+            ->andWhere('v.id = :val')
             ->setParameter('val', $value)
             ->getQuery();
 
