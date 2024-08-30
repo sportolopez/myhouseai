@@ -68,7 +68,7 @@ class UsuarioController extends AbstractController{
     public function perfil(Request $request, UsuarioRepository $usuarioRepository): JsonResponse
     {
         $jwtPayload = $request->attributes->get('jwt_payload');
-        $usuario = $usuarioRepository->findOneBy(['id' => $jwtPayload->token_info->userId]);
+        $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
 
         return new JsonResponse([
             'nombre' => $usuario->getNombre(),
