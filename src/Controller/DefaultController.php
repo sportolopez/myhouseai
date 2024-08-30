@@ -178,15 +178,17 @@ class DefaultController extends AbstractController
 
         $response = $apiClientService->getRender($imagen);
    
-        foreach( $variacionesImagen as $unaVariacion){
-            $variacion = [
-                "url" => "/variacion/".$unaVariacion['id'].".png",
-                "room_type" => $unaVariacion['roomType'],
-                "style" => $unaVariacion['style'],
-                "fecha" => $unaVariacion['fecha']->format('Y-m-d H:i:s'),
-            ];
+        if ($response->status != "done"){
+            foreach( $variacionesImagen as $unaVariacion){
+                $variacion = [
+                    "url" => "/variacion/".$unaVariacion['id'].".png",
+                    "room_type" => $unaVariacion['roomType'],
+                    "style" => $unaVariacion['style'],
+                    "fecha" => $unaVariacion['fecha']->format('Y-m-d H:i:s'),
+                ];
 
-            $variaciones[] = $variacion;
+                $variaciones[] = $variacion;
+            }
         }
 
         if ($response->status == "done") {
