@@ -181,7 +181,7 @@ class DefaultController extends AbstractController
         if ($response->status != "done"){
             foreach( $variacionesImagen as $unaVariacion){
                 $variacion = [
-                    "url" => "/variacion/".$unaVariacion['id'].".png",
+                    "url" => "/api/variacion/".$unaVariacion['id'].".png",
                     "room_type" => $unaVariacion['roomType'],
                     "style" => $unaVariacion['style'],
                     "fecha" => $unaVariacion['fecha']->format('Y-m-d H:i:s'),
@@ -207,7 +207,7 @@ class DefaultController extends AbstractController
     
                 if ($existingVariacion) {
                     $variacion = [
-                        "url" => "/variacion/".$existingVariacion->getId().".png",
+                        "url" => "/api/variacion/".$existingVariacion->getId().".png",
                         "room_type" => $existingVariacion->getRoomType(),
                         "style" => $existingVariacion->getStyle(),
                         "fecha" => $existingVariacion->getFecha()->format('d/m/Y H:i:s')
@@ -248,7 +248,7 @@ class DefaultController extends AbstractController
                 $entityManager->persist($unaVariacion);
 
                 $variacion = [
-                    "url" => "/variacion/".$unaVariacion->getId().".png",
+                    "url" => "/api/variacion/".$unaVariacion->getId().".png",
                     "room_type" => $unaVariacion->getRoomType(),
                     "style" => $unaVariacion->getStyle(),
                     "fecha" => $unaVariacion->getFecha()->format('d/m/Y H:i:s')
