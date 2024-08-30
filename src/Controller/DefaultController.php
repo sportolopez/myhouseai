@@ -248,6 +248,7 @@ class DefaultController extends AbstractController
                     "url" => "/variacion/".$unaVariacion->getId().".png",
                     "room_type" => $unaVariacion->getRoomType(),
                     "style" => $unaVariacion->getStyle(),
+                    "fecha" => $unaVariacion->getFecha()->format('d/m/Y H:i:s')
                 ];
 
                 $variaciones[] = $variacion;
