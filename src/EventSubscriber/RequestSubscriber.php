@@ -21,11 +21,11 @@ class RequestSubscriber implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        $routeName = basename($request->getUri());
-    
+        $routeName = $request->attributes->get('_route'); // Obtiene el nombre de la ruta
+
 
         // Proteger solo ciertas rutas
-        $protectedRoutes = ['generar','historial','process_payment','perfil','create_preference'];
+        $protectedRoutes = ['generar','historial','process_payment','perfil','payment_controller','create_preference','status'];
         if (!in_array($routeName, $protectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;
@@ -38,12 +38,12 @@ class RequestSubscriber implements EventSubscriberInterface
         $authHeader = $request->headers->get('Token');
 
         if (!$authHeader) {
-            throw new AccessDeniedHttpException('No se encontró el encabezado de autorización.' . $routeName);
+            throw new AccessDeniedHttpException('No se encontró el encabezado de autorización.');
         }
 
         $tokenParts = explode(' ', $authHeader);
         if (count($tokenParts) != 2 || strtolower($tokenParts[0]) != 'bearer') {
-            throw new AccessDeniedHttpException('Encabezado de autorización inválidoooo.');
+            throw new AccessDeniedHttpException('Encabezado de autorización inválid.');
         }
 
         $tokenJwt = $tokenParts[1];

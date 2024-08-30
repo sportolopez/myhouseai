@@ -27,7 +27,7 @@ class DefaultController extends AbstractController
 
 
 
-    #[Route('/historial', name: 'app_historial', methods: ['GET'])]
+    #[Route('/historial', name: 'historial', methods: ['GET'])]
     public function historial(Request $request,ImagenRepository $imagenRepository,VariacionRepository $variacionRepository): Response
     {
         
@@ -81,7 +81,7 @@ class DefaultController extends AbstractController
     }
 
  
-    #[Route('/generar', name: 'app_generar', methods: ['POST'])]
+    #[Route('/generar', name: 'generar', methods: ['POST'])]
     public function generar(
         ManagerRegistry $doctrine,
         Request $request,
@@ -171,7 +171,7 @@ class DefaultController extends AbstractController
     }
     
 
-    #[Route('/status/{uuid}', name: 'homepage')]
+    #[Route('/status/{uuid}', name: 'status')]
     public function status(
         string $uuid, 
         ImagenRepository $imagenRepository, 

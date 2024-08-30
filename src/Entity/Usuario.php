@@ -21,9 +21,6 @@ class Usuario
     #[ORM\Column(length: 255, unique:true)]
     private ?string $email = null;
 
-    #[ORM\OneToMany(mappedBy: 'Usuario', targetEntity: Imagen::class)]
-    private Collection $imagens;
-
     #[ORM\Column]
     private ?int $cantidadImagenesDisponibles = null;
 
@@ -65,36 +62,6 @@ class Usuario
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Imagen>
-     */
-    public function getImagens(): Collection
-    {
-        return $this->imagens;
-    }
-
-    public function addImagen(Imagen $imagen): static
-    {
-        if (!$this->imagens->contains($imagen)) {
-            $this->imagens->add($imagen);
-            $imagen->setUsuario($this);
-        }
-
-        return $this;
-    }
-
-    public function removeImagen(Imagen $imagen): static
-    {
-        if ($this->imagens->removeElement($imagen)) {
-            // set the owning side to null (unless already changed)
-            if ($imagen->getUsuario() === $this) {
-                $imagen->setUsuario(null);
-            }
-        }
 
         return $this;
     }

@@ -33,13 +33,14 @@ class PagosController extends AbstractController{
     }
 
 
-
-    #[Route('/process_payment', name: 'create_payment', methods: ['POST'])]
+/*
+    #[Route('/payment', name: 'payment', methods: ['GET'])]
     public function processPayment(ManagerRegistry $doctrine,Request $request, UsuarioRepository $usuarioRepository, PlanesRepository  $planesRepository): JsonResponse
     {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
         $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
+
 
         // Obtener datos de la solicitud
         $data = $request->toArray();
@@ -89,90 +90,55 @@ class PagosController extends AbstractController{
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+*/
 
 
+   
 
-    #[Route('/create_preference', name: 'create_preference', methods: ['POST'])]
-    public function createPreference(Request $request,ManagerRegistry $doctrine, UsuarioRepository $usuarioRepository): Response
+
+    #[Route('/payment/notification', name: 'payment_notification', methods: ['POST'])]
+    public function handleNotification(Request $request): Response
     {
-        self::authenticate();
+        // Verifica si la solicitud es una notificación IPN de MercadoPago
+        $topic = $request->query->get('topic');
+        $id = $request->query->get('id');
 
-        $entityManager = $doctrine->getManager();
-        $jwtPayload = $request->attributes->get('jwt_payload');
-        $usuario = $usuarioRepository->findOneByEmail($jwtPayload->token_info->email);
+        if ($topic === 'payment') {
+            // Inicializa el SDK de MercadoPago con tu Access Token
+            SDK::setAccessToken('TU_ACCESS_TOKEN');
+            
+            // Obtiene el pago utilizando el ID recibido
+            $payment = Payment::find_by_id($id);
 
-
-        $data = json_decode($request->getContent(), true);
-
-        // Fill the data about the product(s) being pruchased
-        $product1 = array(
-            //"id" => "1234567890",
-            "title" => "Fotos en MyHouseAi",
-            "description" => "Fotos en MyHouseAi",
-            "currency_id" => "ARS",
-            "quantity" => $data['quantity'],
-            "unit_price" => $data['unit-price']
-        );
-
-
-
-        // Mount the array of products that will integrate the purchase amount
-        $items = array($product1);
-
-        // Retrieve information about the user (use your own function)
-
-
-        $payer = array(
-            "name" => $usuario->getNombre(),
-            "surname" => $usuario->getNombre(),
-            "email" => $usuario->getEmail(),
-        );
-
-        // Create the request object to be sent to the API when the preference is created
-        $request = self::createPreferenceRequest($items, $payer);
-
-        // Instantiate a new Preference Client
-        $client = new PreferenceClient();
-
-        try {
-            // Send the request that will create the new preference for user's checkout flow
-            $preference = $client->create($request);
-
-            // Useful props you could use from this object is 'init_point' (URL to Checkout Pro) or the 'id'
-            return new JsonResponse($preference);
-        } catch (MPApiException $error) {
-            // Here you might return whatever your app needs.
-            // We are returning null here as an example.
-            return null;
+            if ($payment) {
+                // Procesa el estado del pago y actualiza tu sistema
+                switch ($payment->status) {
+                    case 'approved':
+                        // El pago fue aprobado
+                        // Aquí registrarías el pago en tu base de datos
+                        // Por ejemplo, usando Doctrine para guardar la información
+                        // $this->savePayment($payment);
+                        break;
+                    case 'pending':
+                        // El pago está pendiente
+                        break;
+                    case 'rejected':
+                        // El pago fue rechazado
+                        break;
+                    // Maneja otros estados si es necesario
+                    default:
+                        break;
+                }
+            }
         }
+
+        return new Response('OK', Response::HTTP_OK);
     }
 
-
-    function createPreferenceRequest($items, $payer): array
+    // Método opcional para guardar el pago en la base de datos
+    private function savePayment($payment)
     {
-        $paymentMethods = [
-            "excluded_payment_methods" => [],
-            "installments" => 1,
-            "default_installments" => 1
-        ];
-
-        $backUrls = array(
-            'success' => 'https://myhouseai.com.ar/',
-            'failure' => 'https://myhouseai.com.ar/'
-        );
-
-        $request = [
-            "items" => $items,
-            //"payer" => $payer,
-            "payment_methods" => $paymentMethods,
-            "back_urls" => $backUrls,
-            "statement_descriptor" => "NAME_DISPLAYED_IN_USER_BILLING",
-            "external_reference" => "1234567890",
-            "expires" => false,
-            "auto_return" => 'approved',
-        ];
-
-        return $request;
+        // Implementa la lógica para guardar el pago en la base de datos utilizando Doctrine
     }
-    
+
 }

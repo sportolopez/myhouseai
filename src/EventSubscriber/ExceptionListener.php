@@ -26,6 +26,7 @@ class ExceptionListener implements EventSubscriberInterface
         $response = [
             'error' => $exception->getMessage(),
             'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
+            'stack' => explode("\n", $exception->getTraceAsString()), // Divide el stack trace en un array de líneas
         ];
 
         // Codifica manualmente el array de respuesta como JSON

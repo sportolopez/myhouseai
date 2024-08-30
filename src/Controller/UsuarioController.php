@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UsuarioController extends AbstractController{
 
-    #[Route('/login', name: 'app_login', methods: ['POST'])]
+    #[Route('/login', name: 'login', methods: ['POST'])]
     public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine): JsonResponse
     {
         
@@ -64,7 +64,7 @@ class UsuarioController extends AbstractController{
     }
 
     
-    #[Route('/perfil', name: '_holamundo_', methods: ['GET'])]
+    #[Route('/perfil', name: 'perfil', methods: ['GET'])]
     public function perfil(Request $request, UsuarioRepository $usuarioRepository): JsonResponse
     {
         $jwtPayload = $request->attributes->get('jwt_payload');
