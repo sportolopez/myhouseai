@@ -242,7 +242,7 @@ class DefaultController extends AbstractController
     
                 // Persistir la variación en la base de datos
                 $entityManager->persist($unaVariacion);
-
+                $entityManager->flush();
                 $variacion = [
                     "url" => "/variacion/".$unaVariacion->getId().".png",
                     "room_type" => $unaVariacion->getRoomType(),
