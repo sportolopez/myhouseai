@@ -55,7 +55,7 @@ class VariacionRepository extends ServiceEntityRepository
         ;
     }
 
-    public function findOneByIdSinImagen(String $value): Variacion
+    public function findOneByIdSinImagen(String $value): ?Variacion
     {
         $query = $this->createQueryBuilder('v')
             ->select('v.id, v.fecha, v.roomType, v.style')
