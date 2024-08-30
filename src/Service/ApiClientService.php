@@ -11,16 +11,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ApiClientService
 
 {
-    const URL_API = "https://api.virtualstagingai.app/";
-    //const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
+    //const URL_API = "https://api.virtualstagingai.app/";
+    const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
     
     const URL_IMG = "https://myhouseai.com/api/consultar/";
     const API_KEY = "vsai-pk-4865cd6f-9460-412c-8200-5bf1c9e95843";
 
     private function executeCurlRequest($url, $method, $postFields = null, $headers = [])
     {
-
-        $headers = ['Authorization: Api-Key ' .self::API_KEY,'Content-Type: application/json'];
+        $headers = ['Authorization: Api-Key ' . self::API_KEY, 'Content-Type: application/json'];
 
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -38,26 +37,33 @@ class ApiClientService
             CURLOPT_SSL_VERIFYPEER => false,
         ]);
 
+        // Capturar el tiempo inicial
+        $startTime = microtime(true);
+
         $response = curl_exec($curl);
+
+        // Capturar el tiempo final
+        $endTime = microtime(true);
+
+        // Calcular el tiempo de respuesta
+        $responseTime = $endTime - $startTime;
 
         if ($response === false) {
             $error = curl_error($curl);
             curl_close($curl);
-            throw new Exception("cURL Error: " . $error );
+            throw new Exception("cURL Error: " . $error);
         }
 
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        // Registrar la solicitud y la respuesta
-        $this->logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response);
-
+        // Registrar la solicitud, la respuesta y el tiempo de respuesta
+        $this->logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response, $responseTime);
 
         curl_close($curl);
 
         // Verificar si el código de respuesta HTTP es 200
         if ($httpCode !== 200) {
-            throw new HttpException($httpCode,$response);
-            
+            throw new HttpException($httpCode, $response);
         }
 
         $responseObject = json_decode($response);
@@ -69,6 +75,7 @@ class ApiClientService
 
         return $responseObject;
     }
+
 
     public function generarImagen(Imagen $imagen, String $declutter_mode)
     {
@@ -136,19 +143,20 @@ class ApiClientService
 
     }
 
-    private function logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response)
+    private function logRequestResponse($url, $method, $postFields, $headers, $httpCode, $response, $responseTime)
     {
         // Crear el mensaje de log
         $logMessage = sprintf(
-            "URL: %s\nMétodo: %s\nEncabezados: %s\nDatos de Solicitud: %s\nCódigo HTTP: %d\nRespuesta: %s\n\n",
+            "URL: %s\nMétodo: %s\nEncabezados: %s\nDatos de Solicitud: %s\nCódigo HTTP: %d\nRespuesta: %s\nTiempo de Respuesta API: %f segundos\n\n",
             $url,
             $method,
             json_encode($headers),
             json_encode($postFields),
             $httpCode,
-            $response
+            $response,
+            $responseTime
         );
-
+    
         // Escribir el mensaje en el archivo de log de errores
         error_log($logMessage);
     }

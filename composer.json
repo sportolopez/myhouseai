@@ -25,6 +25,7 @@
         "symfony/form": "6.0.*",
         "symfony/framework-bundle": "6.0.*",
         "symfony/http-kernel": "6.0.*",
+        "symfony/monolog-bundle": "^3.10",
         "symfony/runtime": "6.0.*",
         "symfony/security-csrf": "6.0.*",
         "symfony/twig-bundle": "6.0.*",

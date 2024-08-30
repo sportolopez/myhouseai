@@ -4,17 +4,18 @@ namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+
 class RequestSubscriber implements EventSubscriberInterface
 {
     public static function getSubscribedEvents(): array
     {
         return [
             RequestEvent::class => 'onKernelRequest',
-            ControllerEvent::class => 'onKernelController'
+            TerminateEvent::class => 'onKernelTerminate',
         ];
     }
 
@@ -23,6 +24,8 @@ class RequestSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $routeName = $request->attributes->get('_route'); // Obtiene el nombre de la ruta
 
+        // Guardar tiempo de inicio
+        $request->attributes->set('request_start_time', microtime(true));
 
         // Proteger solo ciertas rutas
         $protectedRoutes = ['generar','historial','process_payment','perfil','payment_controller','create_preference','status'];
@@ -33,8 +36,6 @@ class RequestSubscriber implements EventSubscriberInterface
         error_log("La request esta protegida: " .  $routeName);
         error_log("Entro el onKernelRequest.");
 
-        $request = $event->getRequest();
-        //print_r($request->headers->all());
         $authHeader = $request->headers->get('Token');
 
         if (!$authHeader) {
@@ -43,7 +44,7 @@ class RequestSubscriber implements EventSubscriberInterface
 
         $tokenParts = explode(' ', $authHeader);
         if (count($tokenParts) != 2 || strtolower($tokenParts[0]) != 'bearer') {
-            throw new AccessDeniedHttpException('Encabezado de autorización inválid.');
+            throw new AccessDeniedHttpException('Encabezado de autorización inválido.');
         }
 
         $tokenJwt = $tokenParts[1];
@@ -57,15 +58,17 @@ class RequestSubscriber implements EventSubscriberInterface
         } catch (\Exception $e) {
             throw new AccessDeniedHttpException('Token inválido o expirado.');
         }
-
     }
 
-    public function onKernelController(ControllerEvent $event)
+
+    public function onKernelTerminate(TerminateEvent $event)
     {
-        error_log("Entro el onKernelController.");
-
-
-
+        $request = $event->getRequest();
+        $startTime = $request->attributes->get('request_start_time');
+        if ($startTime) {
+            $endTime = microtime(true);
+            $duration = $endTime - $startTime;
+            error_log(sprintf("Tiempo de respuesta para la ruta %s: %f segundos", $request->attributes->get('_route'), $duration));
+        }
     }
-
 }
