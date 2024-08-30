@@ -11,8 +11,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ApiClientService
 
 {
-    const URL_API = "https://api.virtualstagingai.app/";
-    //const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
+    //const URL_API = "https://api.virtualstagingai.app/";
+    const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
     
     const URL_IMG = "https://myhouseai.com/api/consultar/";
     const API_KEY = "vsai-pk-4865cd6f-9460-412c-8200-5bf1c9e95843";
