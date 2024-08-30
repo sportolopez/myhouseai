@@ -70,14 +70,14 @@ class ApiClientService
         return $responseObject;
     }
 
-    public function generarImagen(Imagen $imagen)
+    public function generarImagen(Imagen $imagen, String $declutter_mode)
     {
         $imageUrl = self::URL_IMG . $imagen->getId() . ".png";
         $postFields = json_encode([
             'image_url' => $imageUrl,
             'room_type' => $imagen->getTipoHabitacion(),
             'wait_for_completion' => false,
-            'declutter_mode' => 'auto',
+            'declutter_mode' => $declutter_mode,
             'style' => $imagen->getEstilo()
         ], JSON_UNESCAPED_SLASHES);
 

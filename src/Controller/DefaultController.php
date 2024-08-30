@@ -142,7 +142,7 @@ class DefaultController extends AbstractController
         $entityManager->persist($imagen);
         $entityManager->flush();
     
-        $renderId = $apiClientService->generarImagen($imagen);
+        $renderId = $apiClientService->generarImagen($imagen, $data['declutter_mode']);
     
         $imagen->setRenderId($renderId);
     
