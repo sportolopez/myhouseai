@@ -172,13 +172,13 @@ class DefaultController extends AbstractController
         if (!$imagen) {
             return new JsonResponse('Image not found', Response::HTTP_NOT_FOUND);
         }
-        $variacionesImagen = $variacionRepository->findByImagenSinBlob($uuid);
+       // $variacionesImagen = $variacionRepository->findByImagenSinBlob($uuid);
         
         $variaciones = [];
 
         $response = $apiClientService->getRender($imagen);
    
-        if ($response->status != "done"){
+        /*if ($response->status != "done"){
             foreach( $variacionesImagen as $unaVariacion){
                 $variacion = [
                     "url" => "/api/variacion/".$unaVariacion['id'].".png",
@@ -218,9 +218,12 @@ class DefaultController extends AbstractController
                 }
 
                 if (strpos($outputUrl, 'furniture_removed') !== false) {
-                    /*$imagen->setImagenSinMuebles($imageContent); // Guardar la imagen como BLOB
-                    $entityManager->persist($imagen); // Persistir la entidad
-                    $entityManager->flush(); // Guardar los cambios en la base de datos*/
+                    if($imagen->getDeclutteredImage() == null){
+                        $imageContent = file_get_contents($outputUrl);
+                        $imagen->setDeclutteredImage($imageContent); // Guardar la imagen como BLOB
+                        $entityManager->persist($imagen); // Persistir la entidad
+                        $entityManager->flush(); // Guardar los cambios en la base de datos
+                    }
                     continue;
                 }
     
@@ -263,8 +266,8 @@ class DefaultController extends AbstractController
         }
     
         // Modificar la respuesta para incluir las variaciones
-
-        $response->outputs = $variaciones;
+        
+        $response->outputs = $variaciones;*/
         $response->render_id = $uuid;
         unset($response->outputs_styles);
         unset($response->outputs_room_types);

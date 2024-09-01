@@ -34,6 +34,9 @@ class Imagen
     #[ORM\Column(length: 255)]
     private ?string $renderId = null;
 
+    #[ORM\Column(type: Types::BLOB, nullable: true)]
+    private $declutteredImage = null;
+
     public function __construct()
     {
     }
@@ -120,6 +123,18 @@ class Imagen
     public function setRenderId(string $renderId): static
     {
         $this->renderId = $renderId;
+
+        return $this;
+    }
+
+    public function getDeclutteredImage()
+    {
+        return $this->declutteredImage;
+    }
+
+    public function setDeclutteredImage($declutteredImage): static
+    {
+        $this->declutteredImage = $declutteredImage;
 
         return $this;
     }
