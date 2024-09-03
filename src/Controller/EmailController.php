@@ -120,7 +120,7 @@ class EmailController extends AbstractController
         $this->em->persist($emailEnviado);
         $this->em->flush();
 
-        $pixelUrl = 'https://myhouseai.com/api/track_email/'.$emailEnviado->getId();
+        $pixelUrl = 'https://myhouseai.com/api/track-email/'.$emailEnviado->getId();
 
         $htmlContent = $this->twig->render($template . '.html.twig', [
             'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenOriginal.png',
