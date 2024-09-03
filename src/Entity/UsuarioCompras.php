@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Doctrine\Types\EstadoCompra;
 use App\Repository\UsuarioComprasRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -32,6 +33,12 @@ class UsuarioCompras
 
     #[ORM\Column(length: 255)]
     private ?string $medioPago = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $preferenceId = null;
+
+    #[ORM\Column(length: 50)]
+    private ?string $estado = null;
 
     public function getId(): ?int
     {
@@ -106,6 +113,30 @@ class UsuarioCompras
     public function setMedioPago(string $medioPago): static
     {
         $this->medioPago = $medioPago;
+
+        return $this;
+    }
+
+    public function getPreferenceId(): ?string
+    {
+        return $this->preferenceId;
+    }
+
+    public function setPreferenceId(?string $preferenceId): static
+    {
+        $this->preferenceId = $preferenceId;
+
+        return $this;
+    }
+
+    public function getEstado(): ?string
+    {
+        return $this->estado;
+    }
+
+    public function setEstado(string $estado): static
+    {
+        $this->estado = $estado;
 
         return $this;
     }
