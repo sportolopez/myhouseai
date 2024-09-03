@@ -5,11 +5,14 @@ use App\Entity\EstadoCompra;
 use App\Entity\UsuarioCompras;
 use App\Repository\UsuarioComprasRepository;
 use App\Repository\UsuarioRepository;
+use App\Service\TelegramService;
 use DateTime;
 use Exception;
+use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Resources\Invoice\Payment;
 use MercadoPago\Resources\PreferenceSearch;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +43,7 @@ class MercadoPagoController extends AbstractController
     }
 
     #[Route('/success', name: 'mercadopago_success', methods: ['GET'])]
-    public function success(Request $request): Response
+    public function success(Request $request,TelegramService $telegramService): Response
     {
         try{
             $preferenceId = $request->query->get('preference_id');
@@ -55,6 +58,7 @@ class MercadoPagoController extends AbstractController
             
             $usuarioPagador = $usuarioCompra->getUsuario();
             error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
+            $telegramService->sendMessage("🤑: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
             $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
 
             $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
@@ -80,39 +84,32 @@ class MercadoPagoController extends AbstractController
     #[Route('/pending', name: 'mercadopago_pending', methods: ['GET'])]
     public function pending(Request $request): Response
     {
-        $preferenceId = $request->query->get('preference_id');
-        return $this->handlePaymentResponse($preferenceId, 'pending');
-    }
-
-    private function handlePaymentResponse(string $preferenceId, string $status): Response
-    {
-        // Obtener los detalles de la preferencia
-        $client = new PreferenceClient();
-        $preference = $client->get($preferenceId);
-
-        if ($preference) {
-            // Obtener los detalles del pagador
-            $payer = $preference->payer;
-            $usuarioPagador = $this->usuarioRepository->findOneByEmail($payer->email);
-            if(!$usuarioPagador)
-                return new Response('No se encontró al usuario .' . $payer->email, Response::HTTP_NOT_FOUND);
-            $cantidadImagenesCompradas = $preference->items[0]->quantity;
+        try{
+            $preferenceId = $request->query->get('preference_id');
+            $usuarioCompra =  $this->usuarioComprasRepository->findOneBy(['preferenceId' => $preferenceId]);
+            if (!$usuarioCompra) {
+                throw new NotFoundHttpException('No se encontró la compra con el preferenceId: ' . $preferenceId);
+            }
             
-            $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$cantidadImagenesCompradas);
+            if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
+                throw new NotFoundHttpException('Esta compra ya fue utilizada preferenceId: ' . $preferenceId);
+            }
+            
+            $usuarioPagador = $usuarioCompra->getUsuario();
+            error_log("mercadopago_success: Se cambia el estado a pending {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
+            $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
+
+            $usuarioCompra->setEstado(EstadoCompra::PENDING);
+            $this->entityManager->persist($usuarioCompra);
             $this->entityManager->persist($usuarioPagador);
             $this->entityManager->flush();
 
-            /*$usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$planComprado->getCantidad());
-            $entityManager->persist($usuario);
-            $entityManager->flush();*/
-            // Aquí puedes procesar la información del pagador o actualizar el estado del pago en tu base de datos
-            // Por ejemplo, registrar la compra en función del estado y los detalles del pagador
-
-            return new RedirectResponse('https://myhouseai.com.ar/?status=approved');
+            return new RedirectResponse('https://myhouseai.com.ar/?status=pending');
+        }catch (Exception $exception){
+            error_log($exception->getTraceAsString());
+            return new RedirectResponse('https://myhouseai.com.ar/?status=failure');
         }
-
-        // Redirigir en caso de error
-        return new RedirectResponse('https://myhouseai.com.ar/?status=failure');
+        
     }
 
     #[Route('/create_preference', name: 'create_preference', methods: ['POST'])]
@@ -186,11 +183,10 @@ class MercadoPagoController extends AbstractController
         $id = $request->query->get('id');
 
         if ($topic === 'payment') {
-            // Inicializa el SDK de MercadoPago con tu Access Token
-            SDK::setAccessToken('TU_ACCESS_TOKEN');
-            
+
+            $payment = new PaymentClient();
             // Obtiene el pago utilizando el ID recibido
-            $payment = Payment::find_by_id($id);
+            $payment = $payment->get($id);
 
             if ($payment) {
                 // Procesa el estado del pago y actualiza tu sistema
