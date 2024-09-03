@@ -127,7 +127,8 @@ class EmailController extends AbstractController
             'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenGenerada.png',
             'pixel_url' => $pixelUrl
         ]);
-
+        $domicilio = $inmobiliaria->getDomicilio();
+        $subject = str_replace('{domicilio}', $domicilio, $subject);
         $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
     }
 
