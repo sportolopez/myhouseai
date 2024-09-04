@@ -61,7 +61,7 @@ class DefaultController extends AbstractController
             
             $variacionesIds = array_map(function(Array $variacion) {
                 return [
-                    "url" => "/api/variacion/" . $variacion['id'] . ".png",
+                    "url" => "/api/variacion/" . $variacion['id'] . ".jpg",
                     "variacion_id" =>$variacion['id'] ,
                     "fecha" => $variacion['fecha']->format('Y-m-d H:i:s'),
                     "room_type" => $variacion['roomType'],
@@ -71,7 +71,7 @@ class DefaultController extends AbstractController
             
 
 
-            $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".png",
+            $imagenesArray[] = ['imagen' => $url . $imagen->getId() . ".jpg",
                                 'render_id' => $imagen->getId(),
                                 'fecha' => $imagen->getFecha()->format('d/m/Y H:i:s'), "variaciones" => $variacionesIds];
         }
@@ -276,7 +276,7 @@ class DefaultController extends AbstractController
     }
     
 
-    #[Route('/consultar/{uuid}.png', name: 'app_consultar', methods: ['GET'])]
+    #[Route('/consultar/{uuid}.jpg', name: 'app_consultar', methods: ['GET'])]
     public function consultar(string $uuid, ManagerRegistry $doctrine): Response
     {
         $imagen = $doctrine->getRepository(Imagen::class)->find($uuid);
@@ -293,7 +293,7 @@ class DefaultController extends AbstractController
         return $response;
     }
 
-    #[Route('/variacion/{uuid}.png', name: 'app_variacion', methods: ['GET'])]
+    #[Route('/variacion/{uuid}.jpg', name: 'app_variacion', methods: ['GET'])]
     public function getVariacion(string $uuid, ManagerRegistry $doctrine): Response
     {
         $variacion = $doctrine->getRepository(Variacion::class)->find($uuid);
