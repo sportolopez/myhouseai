@@ -141,7 +141,8 @@ class DefaultController extends AbstractController
         $imagen->setFecha(new DateTime());
         $entityManager->persist($imagen);
         $entityManager->flush();
-    
+        if (!array_key_exists('declutter_mode', $data))
+            $data['declutter_mode'] = "off";
         $renderId = $apiClientService->generarImagen($imagen, $data['declutter_mode']);
     
         $imagen->setRenderId($renderId);

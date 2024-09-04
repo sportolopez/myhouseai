@@ -79,7 +79,7 @@ class ApiClientService
 
     public function generarImagen(Imagen $imagen, String $declutter_mode)
     {
-        $imageUrl = self::URL_IMG . $imagen->getId() . ".png";
+        $imageUrl = self::URL_IMG . $imagen->getId() . ".jpg";
         $postFields = json_encode([
             'image_url' => $imageUrl,
             'room_type' => $imagen->getTipoHabitacion(),
