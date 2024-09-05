@@ -131,12 +131,30 @@ class MercadoPagoController extends AbstractController
             // Ejemplo: obtener el detalle del pago desde tu servicio
             $paymentCliente = new PaymentClient();
 
-            $paymentDetails = $paymentCliente->get($paymentId);
+            $payment = $paymentCliente->get($paymentId);
     
-            if ($paymentDetails) {
+            if ($payment) {
+
+            // Convertir el arreglo a JSON
+                $paymentArray = [
+                    'id' => $payment->id,
+                    'status' => $payment->status,
+                    'external_reference' => $payment->external_reference,
+                    'transaction_amount' => $payment->transaction_amount,
+                    'date_created' => $payment->date_created,
+                    'date_approved' => $payment->date_approved,
+                    'payment_method_id' => $payment->payment_method_id,
+                    // Agregar más propiedades según sea necesario
+                ];
+
+                // Convertir el arreglo a JSON
+                $paymentJson = json_encode($paymentArray, JSON_PRETTY_PRINT);
+                
+                $telegramService->sendMessage("PaymentDetails recibido: " . $paymentJson);
+    
                 // Procesa la información del pago en tu sistema (actualiza base de datos, etc.)
                 // $this->paymentService->processPayment($paymentDetails);
-                $idUsuarioCompra = $paymentDetails->external_reference;
+                $idUsuarioCompra = $payment->external_reference;
                 $usuarioCompra =  $this->usuarioComprasRepository->find($idUsuarioCompra);
                 if (!$usuarioCompra) {
                     throw new NotFoundHttpException('No se encontró la compra con el id: ' . $idUsuarioCompra);
@@ -148,7 +166,7 @@ class MercadoPagoController extends AbstractController
                 
                 $usuarioPagador = $usuarioCompra->getUsuario();
                 error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
-                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$data['status']}, cantidad: " . $usuarioCompra->getCantidad());
+                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado:0 {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
                 $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
     
                 $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
