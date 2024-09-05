@@ -1,9 +1,9 @@
 <IfModule mod_rewrite.c>
-    RewriteEngine On
-	RewriteCond %{HTTPS} off
-	RewriteCond %{HTTP:CDN-LOOP} !cloudflare
-	RewriteCond %{REQUEST_URI} !^/.well-known/acme-challenge/
-	RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,QSA]
+    #RewriteEngine Off
+    #RewriteCond %{HTTPS} off
+    #RewriteCond %{HTTP:CDN-LOOP} !cloudflare
+    #RewriteCond %{REQUEST_URI} !^/.well-known/acme-challenge/
+    #RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,QSA]
 
     RewriteBase /
     # Asegurarse de que solo se reescriban las solicitudes que comienzan con /api/
