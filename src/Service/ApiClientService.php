@@ -125,12 +125,13 @@ class ApiClientService
         return $responseObject;
     }
 
-    public function crearVariacionParaRender(String $renderId, String $roomType, String $style, bool $waitForCompletion = false, bool $addWatermark = false, bool $switchToQueuedImmediately = true)
+    public function crearVariacionParaRender(String $renderId, String $roomType, String $style, bool $waitForCompletion = false, bool $addWatermark = false, bool $switchToQueuedImmediately = false)
     {
         $postFields = json_encode([
             'wait_for_completion' => $waitForCompletion,
             'roomType' => $roomType,
             'style' => $style,
+            'resolution' => 'full-hd',
             'add_virtually_staged_watermark' => $addWatermark,
             'switch_to_queued_immediately' => $switchToQueuedImmediately,
         ]);
