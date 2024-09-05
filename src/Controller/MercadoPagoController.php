@@ -113,6 +113,24 @@ class MercadoPagoController extends AbstractController
         
     }
 
+    
+    #[Route('/webhook', name: 'webhook', methods: ['POST'])]
+    public function webhook(Request $request,TelegramService $telegramService): Response
+    {
+        // Obtén el contenido de la solicitud
+        $data = json_decode($request->getContent(), true);
+
+        // Registra los datos para depuración
+        $telegramService->sendMessage("WebHook recibido:" . $request->getContent() );
+            
+
+        // Procesa la notificación según tus necesidades
+        // Ejemplo: verificar el estado del pago, actualizar la base de datos, etc.
+
+        // Responde con un 200 OK para confirmar que recibiste la notificación
+        return new Response('Webhook received', Response::HTTP_OK);
+    }
+
     #[Route('/create_preference', name: 'create_preference', methods: ['POST'])]
     public function createPreference(Request $request,ManagerRegistry $doctrine, UsuarioRepository $usuarioRepository,PlanesRepository $planesRepository): Response
     {
