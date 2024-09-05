@@ -263,7 +263,7 @@ class MercadoPagoController extends AbstractController
             "payment_methods" => $paymentMethods,
             "back_urls" => $backUrls,
             //"statement_descriptor" => "NAME_DISPLAYED_IN_USER_BILLING",
-            "notification_url": "https://myhouseai.com/api/payment/webhook",
+            "notification_url" => "https://myhouseai.com/api/payment/webhook",
             "external_reference" => "FOTOSENMY",
             "expires" => false,
             "auto_return" => 'approved',
