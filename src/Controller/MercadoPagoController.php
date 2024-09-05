@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\EstadoCompra;
 use App\Entity\UsuarioCompras;
+use App\Repository\PlanesRepository;
 use App\Repository\UsuarioComprasRepository;
 use App\Repository\UsuarioRepository;
 use App\Service\TelegramService;
@@ -113,7 +114,7 @@ class MercadoPagoController extends AbstractController
     }
 
     #[Route('/create_preference', name: 'create_preference', methods: ['POST'])]
-    public function createPreference(Request $request,ManagerRegistry $doctrine, UsuarioRepository $usuarioRepository,UsuarioComprasRepository $usuarioComprasRepository): Response
+    public function createPreference(Request $request,ManagerRegistry $doctrine, UsuarioRepository $usuarioRepository,PlanesRepository $planesRepository): Response
     {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
@@ -122,14 +123,25 @@ class MercadoPagoController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
+        $unPlan = $planesRepository->findOneBy(['cantidad'=> $data['quantity']]);
+
+        if(!$unPlan)
+            return new JsonResponse("Plan no encontrado",404);
+
+        $valor = $unPlan->getValor();
+        $cantidad = $unPlan->getCantidad();
+
+        // Dividir y redondear a 2 decimales
+        $resultado = round($valor / $cantidad, 2);
+        
         // Fill the data about the product(s) being pruchased
         $product1 = array(
             //"id" => "1234567890",
-            "title" => "Fotos en MyHouseAi",
-            "description" => "Fotos en MyHouseAi",
+            "title" => "Fotos en MyHouseAI",
+            "description" => "Fotos en MyHouseAI",
             "currency_id" => "ARS",
             "quantity" => $data['quantity'],
-            "unit_price" => $data['unit-price']
+            "unit_price" => $resultado
         );
 
         // Mount the array of products that will integrate the purchase amount
