@@ -169,12 +169,22 @@ class MercadoPagoController extends AbstractController
                 $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
                 $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
     
-                if($payment->status === "approved")
-                    $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
-                if($payment->status === "pending")
-                    $usuarioCompra->setEstado(EstadoCompra::PENDING);
-                if($payment->status === "rejected")
-                    $usuarioCompra->setEstado(EstadoCompra::ERROR);
+    
+                switch ($payment->status) {
+                    case 'approved':
+                        $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
+                        break;
+                    case 'pending':
+                        $usuarioCompra->setEstado(EstadoCompra::PENDING);
+                        break;
+                    case 'rejected':
+                        $usuarioCompra->setEstado(EstadoCompra::ERROR);
+                        break;
+                    // Maneja otros estados si es necesario
+                    default:
+                        $usuarioCompra->setEstado(EstadoCompra::ERROR);
+                        break;
+                }
                 $this->entityManager->persist($usuarioCompra);
                 $this->entityManager->persist($usuarioPagador);
                 $this->entityManager->flush();
@@ -325,9 +335,9 @@ class MercadoPagoController extends AbstractController
         ];
 
         $backUrls = array(
-            'success' => 'https://myhouseai.com.ar/',
-            'failure' => 'https://myhouseai.com.ar/',
-            'pending' => 'https://myhouseai.com.ar/'
+            'success' => 'https://myhouseai.com.ar/?status=approved',
+            'failure' => 'https://myhouseai.com.ar/?status=failure',
+            'pending' => 'https://myhouseai.com.ar/?status=pending'
         );
 
         $request = [
