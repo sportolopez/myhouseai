@@ -166,10 +166,15 @@ class MercadoPagoController extends AbstractController
                 
                 $usuarioPagador = $usuarioCompra->getUsuario();
                 error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
-                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado:0 {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
+                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
                 $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
     
-                $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
+                if($payment->status === "approved")
+                    $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
+                if($payment->status === "pending")
+                    $usuarioCompra->setEstado(EstadoCompra::PENDING);
+                if($payment->status === "rejected")
+                    $usuarioCompra->setEstado(EstadoCompra::ERROR);
                 $this->entityManager->persist($usuarioCompra);
                 $this->entityManager->persist($usuarioPagador);
                 $this->entityManager->flush();
