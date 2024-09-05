@@ -115,21 +115,61 @@ class MercadoPagoController extends AbstractController
 
     
     #[Route('/webhook', name: 'webhook', methods: ['POST'])]
-    public function webhook(Request $request,TelegramService $telegramService): Response
+    public function webhook(Request $request, TelegramService $telegramService, UsuarioComprasRepository $usuarioComprasRepository): Response
     {
         // Obtén el contenido de la solicitud
         $data = json_decode($request->getContent(), true);
-
+    
         // Registra los datos para depuración
-        $telegramService->sendMessage("WebHook recibido:" . $request->getContent() );
-            
+        $telegramService->sendMessage("WebHook recibido: " . $request->getContent());
+    
+        // Verifica si el mensaje es de tipo 'payment' y tiene un ID de pago
+        if (isset($data['type']) && $data['type'] === 'payment' && isset($data['data']['id'])) {
+            $paymentId = $data['data']['id'];
+    
+            // Aquí puedes usar el paymentId para obtener los detalles del pago a través de la API
+            // Ejemplo: obtener el detalle del pago desde tu servicio
+            $paymentCliente = new PaymentClient();
 
-        // Procesa la notificación según tus necesidades
-        // Ejemplo: verificar el estado del pago, actualizar la base de datos, etc.
-
+            $paymentDetails = $paymentCliente->get($paymentId);
+    
+            if ($paymentDetails) {
+                // Procesa la información del pago en tu sistema (actualiza base de datos, etc.)
+                // $this->paymentService->processPayment($paymentDetails);
+                $idUsuarioCompra = $paymentDetails->external_reference;
+                $usuarioCompra =  $this->usuarioComprasRepository->find($idUsuarioCompra);
+                if (!$usuarioCompra) {
+                    throw new NotFoundHttpException('No se encontró la compra con el id: ' . $idUsuarioCompra);
+                }
+                
+                if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
+                    throw new NotFoundHttpException('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
+                }
+                
+                $usuarioPagador = $usuarioCompra->getUsuario();
+                error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
+                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$data['status']}, cantidad: " . $usuarioCompra->getCantidad());
+                $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
+    
+                $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
+                $this->entityManager->persist($usuarioCompra);
+                $this->entityManager->persist($usuarioPagador);
+                $this->entityManager->flush();
+                // Registrar el evento
+                $telegramService->sendMessage("Pago recibido con ID: " . $paymentId);
+            } else {
+                // Si no se puede obtener el pago, registra un error
+                $telegramService->sendMessage("No se pudieron obtener los detalles del pago con ID: " . $paymentId);
+            }
+        } else {
+            // Si no es un mensaje de pago, puedes manejarlo de otra forma o ignorarlo
+            $telegramService->sendMessage("El mensaje no se trata de un pago o no contiene un ID de pago.");
+        }
+    
         // Responde con un 200 OK para confirmar que recibiste la notificación
         return new Response('Webhook received', Response::HTTP_OK);
     }
+    
 
     #[Route('/create_preference', name: 'create_preference', methods: ['POST'])]
     public function createPreference(Request $request,ManagerRegistry $doctrine, UsuarioRepository $usuarioRepository,PlanesRepository $planesRepository): Response
@@ -150,7 +190,7 @@ class MercadoPagoController extends AbstractController
         $cantidad = $unPlan->getCantidad();
 
         // Dividir y redondear a 2 decimales
-        $resultado = round($valor / $cantidad, 2);
+        $precioFinal = round($valor / $cantidad, 2);
         
         // Fill the data about the product(s) being pruchased
         $product1 = array(
@@ -159,7 +199,7 @@ class MercadoPagoController extends AbstractController
             "description" => "Fotos en MyHouseAI",
             "currency_id" => "ARS",
             "quantity" => $data['quantity'],
-            "unit_price" => $resultado
+            "unit_price" => $precioFinal
         );
 
         // Mount the array of products that will integrate the purchase amount
@@ -172,27 +212,37 @@ class MercadoPagoController extends AbstractController
         );
 
         // Create the request object to be sent to the API when the preference is created
-        $request = self::createPreferenceRequest($items, $payer);
+        
 
         // Instantiate a new Preference Client
-        $client = new PreferenceClient();
+        
 
         try {
+            $client = new PreferenceClient();
             // Send the request that will create the new preference for user's checkout flow
-            $preference = $client->create($request);
+
 
             $usuarioCompra = new UsuarioCompras();
             $usuarioCompra->setUsuario($usuario);
             $usuarioCompra->setCantidad($data['quantity']);
-            $usuarioCompra->setMonto($data['unit-price']);
+            $usuarioCompra->setMonto($precioFinal);
             $usuarioCompra->setMoneda("ARS");
             $usuarioCompra->setFecha(new DateTime());
-            $usuarioCompra->setPreferenceId($preference->id);
+            //
             $usuarioCompra->setEstado(EstadoCompra::NUEVO);
             $usuarioCompra->setMedioPago("TC");
             $entityManager->persist($usuarioCompra);
+            $entityManager->flush();    
             
-            $entityManager->flush();            
+            $request = self::createPreferenceRequest($items, $payer);
+            $request['external_reference'] = $usuarioCompra->getId();
+
+
+            $preference = $client->create($request);
+            $usuarioCompra->setPreferenceId($preference->id);
+            $entityManager->persist($usuarioCompra);
+            $entityManager->flush();  
+
             // Useful props you could use from this object is 'init_point' (URL to Checkout Pro) or the 'id'
 
 
@@ -252,9 +302,9 @@ class MercadoPagoController extends AbstractController
         ];
 
         $backUrls = array(
-            'success' => 'https://myhouseai.com.ar/api/payment/success',
-            'failure' => 'https://myhouseai.com.ar/api/payment/failure',
-            'pending' => 'https://myhouseai.com.ar/api/payment/pending'
+            'success' => 'https://myhouseai.com.ar/',
+            'failure' => 'https://myhouseai.com.ar/',
+            'pending' => 'https://myhouseai.com.ar/'
         );
 
         $request = [
