@@ -39,7 +39,7 @@ class MercadoPagoController extends AbstractController
         $this->usuarioRepository = $usuarioRepository;
         $this->usuarioComprasRepository = $usuarioComprasRepository;
         $this->entityManager = $doctrine->getManager();
-        MercadoPagoConfig::setAccessToken("TEST-4972941314108448-060716-d04a68936cfd0dea91f921cba2cdb2ee-22465532");
+        MercadoPagoConfig::setAccessToken("APP_USR-940616875363882-081915-546916ce9065ba4abd63061481b691f8-22465532");
         MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
     }
 
