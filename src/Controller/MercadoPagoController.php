@@ -131,11 +131,11 @@ class MercadoPagoController extends AbstractController
             // Ejemplo: obtener el detalle del pago desde tu servicio
             $paymentCliente = new PaymentClient();
 
-            $payment = $paymentCliente->get($paymentId);
-    
-            if ($payment) {
+            try{
+                $payment = $paymentCliente->get($paymentId);
 
-            // Convertir el arreglo a JSON
+
+                // Convertir el arreglo a JSON
                 $paymentArray = [
                     'id' => $payment->id,
                     'status' => $payment->status,
@@ -161,11 +161,7 @@ class MercadoPagoController extends AbstractController
                     throw new NotFoundHttpException('No se encontró la compra con el id: ' . $idUsuarioCompra);
                 }
                 
-                if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
-                    $telegramService->sendMessage('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
-                    throw new NotFoundHttpException('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
-                }
-                
+
                 $usuarioPagador = $usuarioCompra->getUsuario();
                 error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
                 $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
@@ -174,6 +170,10 @@ class MercadoPagoController extends AbstractController
     
                 switch ($payment->status) {
                     case 'approved':
+                        if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
+                            $telegramService->sendMessage('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
+                            throw new NotFoundHttpException('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
+                        }
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
                         $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
                         break;
@@ -193,10 +193,13 @@ class MercadoPagoController extends AbstractController
                 $this->entityManager->flush();
                 // Registrar el evento
                 $telegramService->sendMessage("Pago recibido con ID: " . $paymentId);
-            } else {
-                // Si no se puede obtener el pago, registra un error
+
+            }catch(Exception $e){
                 $telegramService->sendMessage("No se pudieron obtener los detalles del pago con ID: " . $paymentId);
+                return new Response('Payment no encontrado', Response::HTTP_NOT_FOUND);
             }
+            
+            
         } else {
         }
     
