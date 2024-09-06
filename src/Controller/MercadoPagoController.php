@@ -157,10 +157,12 @@ class MercadoPagoController extends AbstractController
                 $idUsuarioCompra = $payment->external_reference;
                 $usuarioCompra =  $this->usuarioComprasRepository->find($idUsuarioCompra);
                 if (!$usuarioCompra) {
+                    $telegramService->sendMessage('No se encontró la compra con el id: ' . $idUsuarioCompra);
                     throw new NotFoundHttpException('No se encontró la compra con el id: ' . $idUsuarioCompra);
                 }
                 
                 if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
+                    $telegramService->sendMessage('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
                     throw new NotFoundHttpException('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
                 }
                 
@@ -195,8 +197,6 @@ class MercadoPagoController extends AbstractController
                 $telegramService->sendMessage("No se pudieron obtener los detalles del pago con ID: " . $paymentId);
             }
         } else {
-            // Si no es un mensaje de pago, puedes manejarlo de otra forma o ignorarlo
-            $telegramService->sendMessage("El mensaje no se trata de un pago o no contiene un ID de pago.");
         }
     
         // Responde con un 200 OK para confirmar que recibiste la notificación

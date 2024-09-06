@@ -37,32 +37,37 @@ class EmailController extends AbstractController
     public function sendEmails(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse
     {
         // Obtener los parámetros de la consulta
-        $startId = (int) $request->query->get('start_id');
-        $endId = (int) $request->query->get('end_id');
+        $ids = $request->query->get('ids'); // Los IDs deben venir como una lista, por ejemplo: ?ids=1,2,3
         $asunto = $request->query->get('asunto');
         $template = $request->query->get('template');
-
+    
         // Validar que todos los parámetros estén presentes
-        if (!$startId || !$endId || !$asunto || !$template) {
-            return new JsonResponse(['error' => 'Faltan parametros start_id, end_id , asunto , template'], 400);
+        if (!$ids || !$asunto || !$template) {
+            return new JsonResponse(['error' => 'Faltan parametros ids, asunto, template'], 400);
         }
-
-        // Obtener las inmobiliarias dentro del rango de IDs
-        $inmobiliarias = $inmobiliariaRepository->findBy([
-            'id' => ['BETWEEN', $startId, $endId]
-        ]);
-
+    
+        // Convertir los IDs en un array
+        $idArray = array_map('intval', explode(',', $ids));
+    
+        if (empty($idArray)) {
+            return new JsonResponse(['error' => 'La lista de ids está vacía'], 400);
+        }
+    
+        // Obtener las inmobiliarias con los IDs proporcionados
+        $inmobiliarias = $inmobiliariaRepository->findBy(['id' => $idArray]);
+    
         if (empty($inmobiliarias)) {
-            return new JsonResponse(['message' => 'No inmobiliarias found in the given range'], 404);
+            return new JsonResponse(['message' => 'No se encontraron inmobiliarias con los IDs proporcionados'], 404);
         }
-
+    
         // Enviar correos electrónicos a las inmobiliarias
         foreach ($inmobiliarias as $inmobiliaria) {
             $this->processEmail($inmobiliaria, $asunto, $template);
         }
-
-        return new JsonResponse(['message' => 'Emails sent successfully']);
+    
+        return new JsonResponse(['message' => 'Correos enviados exitosamente']);
     }
+    
 
 
     #[Route('/track-email/{id}', name: 'track_email', methods: ['GET'])]
@@ -127,8 +132,10 @@ class EmailController extends AbstractController
             'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenGenerada.png',
             'pixel_url' => $pixelUrl
         ]);
-        $domicilio = $inmobiliaria->getDomicilio();
+        $domicilio = $inmobiliaria->getDireccion();
+        error_log(("Domicilio: $domicilio"));
         $subject = str_replace('{domicilio}', $domicilio, $subject);
+        error_log(("Domicilio: $subject"));
         $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
     }
 
@@ -149,6 +156,7 @@ class EmailController extends AbstractController
             $mail->setFrom($this->smtpFrom, $this->smtpFromName);
             //$mail->addAddress($to);
             $mail->addAddress("sebaporto@gmail.com");
+            $mail->addAddress("moreiragmartin@gmail.com");
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $htmlContent;

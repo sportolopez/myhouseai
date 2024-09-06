@@ -3,6 +3,7 @@
 namespace App\Controller;
 use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
+use App\Service\TelegramService;
 use App\Service\Utils;
 use Firebase\JWT\JWT;
 use MercadoPago\Client\Common\RequestOptions;
@@ -19,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 class UsuarioController extends AbstractController{
 
     #[Route('/login', name: 'login', methods: ['POST'])]
-    public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine): JsonResponse
+    public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine, TelegramService $telegramService): JsonResponse
     {
         
         $data = json_decode($request->getContent(), true);
@@ -56,8 +57,9 @@ class UsuarioController extends AbstractController{
             'jwt_token' => $jwt,
             'userInfo' => $token_info
         );
-        error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
-
+        //error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
+        $telegramService->sendMessage("Login exitoso: {$user_info['email']}");
+                
         return new JsonResponse($token,200);
         
 
