@@ -200,8 +200,7 @@ class MercadoPagoController extends AbstractController
             }
             
             
-        } else {
-        }
+        } 
     
         // Responde con un 200 OK para confirmar que recibiste la notificación
         return new Response('Webhook received', Response::HTTP_OK);
