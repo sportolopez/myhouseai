@@ -7,6 +7,7 @@ use App\Repository\ImagenRepository;
 use App\Repository\PlanesRepository;
 use App\Repository\UsuarioRepository;
 use App\Repository\VariacionRepository;
+use App\Service\TelegramService;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,7 +88,8 @@ class DefaultController extends AbstractController
         Request $request,
         UsuarioRepository $usuarioRepository,
         ImagenRepository $imagenRepository,
-        ApiClientService $apiClientService
+        ApiClientService $apiClientService,
+        TelegramService $telegramService
     ): JsonResponse {
         $entityManager = $doctrine->getManager();
         $jwtPayload = $request->attributes->get('jwt_payload');
@@ -154,6 +156,8 @@ class DefaultController extends AbstractController
         $entityManager->persist($usuario);
         $entityManager->flush();
     
+        $telegramService->sendMessage("📷 Se ejecuto generar: {$usuario->getEmail()}");
+           
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
     
@@ -343,44 +347,6 @@ class DefaultController extends AbstractController
         return new JsonResponse($response, 200);
     }
 
-
-    #[Route('/notificaciones', name: 'notificaciones', methods: ['GET'])]
-    public function notificaciones(): JsonResponse
-    {
-        $botToken = "7293637587:AAF9cQYXsPlLl5ufJ8YgARydPbuGeTcLhyk";
-        $apiUrl = "https://api.telegram.org/bot$botToken/getUpdates";
-        $chatId = "-4539412661";
-        $message = "¡Hola! Este es un mensaje enviado desde un bot de Telegram usando PHP.";
-
-        $telegramApiUrl = "https://api.telegram.org/bot$botToken/sendMessage";
-
-        // Datos a enviar
-        $data = [
-            'chat_id' => $chatId,
-            'text' => $message
-        ];
-
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'POST',
-                'content' => http_build_query($data),
-            ],
-        ];
-
-        $context  = stream_context_create($options);
-
-        // Realizar la solicitud a la API de Telegram
-        $result = file_get_contents($telegramApiUrl, false, $context);
-
-        // Verificar el resultado
-        if ($result === FALSE) {
-           return new JsonResponse( "Error al enviar el mensaje", 200);
-        } else {
-            return new JsonResponse( "Mensaje enviado correctamente", 200);
-        }
-        
-    }
 
     #[Route('/ping', name: 'ping', methods: ['GET'])]
     public function ping(ApiClientService $apiClientService): JsonResponse

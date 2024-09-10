@@ -121,7 +121,7 @@ class MercadoPagoController extends AbstractController
         $data = json_decode($request->getContent(), true);
     
         // Registra los datos para depuración
-        $telegramService->sendMessage("WebHook recibido: " . $request->getContent());
+        $telegramService->sendMessage("DEBUG: WebHook recibido: " . $request->getContent());
     
         // Verifica si el mensaje es de tipo 'payment' y tiene un ID de pago
         if (isset($data['type']) && $data['type'] === 'payment' && isset($data['data']['id'])) {
@@ -157,14 +157,14 @@ class MercadoPagoController extends AbstractController
                 $idUsuarioCompra = $payment->external_reference;
                 $usuarioCompra =  $this->usuarioComprasRepository->find($idUsuarioCompra);
                 if (!$usuarioCompra) {
-                    $telegramService->sendMessage('No se encontró la compra con el id: ' . $idUsuarioCompra);
+                    $telegramService->sendMessage('DEBUG: No se encontró la compra con el id: ' . $idUsuarioCompra);
                     throw new NotFoundHttpException('No se encontró la compra con el id: ' . $idUsuarioCompra);
                 }
                 
 
                 $usuarioPagador = $usuarioCompra->getUsuario();
                 error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
-                $telegramService->sendMessage("Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
+                $telegramService->sendMessage("DEBUG: Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
                 
     
     
@@ -176,6 +176,7 @@ class MercadoPagoController extends AbstractController
                         }
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
                         $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
+                        $telegramService->sendMessage("💰 Pago approved con ID: " . $paymentId);
                         break;
                     case 'pending':
                         $usuarioCompra->setEstado(EstadoCompra::PENDING);
@@ -192,7 +193,7 @@ class MercadoPagoController extends AbstractController
                 $this->entityManager->persist($usuarioPagador);
                 $this->entityManager->flush();
                 // Registrar el evento
-                $telegramService->sendMessage("Pago recibido con ID: " . $paymentId);
+                
 
             }catch(Exception $e){
                 $telegramService->sendMessage("No se pudieron obtener los detalles del pago con ID: " . $paymentId);
