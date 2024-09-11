@@ -10,8 +10,8 @@
             <tr>
                 <th>Id</th>
                 <th>Nombre</th>
+                <th>Enviados</th>
                 <th>Vistos</th>
-                <th>Fecha_ultimo_visto</th>
                 <th>Imagen Original</th>
                 <th>Upload Imagen Original</th>
                 <th>Imagen Limpia</th>
@@ -28,11 +28,11 @@
             <tr>
                 <td>{{ inmobiliarium.id }}</td>
                 <td>{{ inmobiliarium.nombre }}</td>
-                <td>{{ inmobiliarium.visto }}</td>
-                <td>{{ inmobiliarium.fechaUltimoVisto ? inmobiliarium.fechaUltimoVisto|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ inmobiliarium.enviados }}</td>
+                <td>{{ inmobiliarium.vistos }}</td>
                 <td>
-                    {% if inmobiliarium.imagenEjemplo is not null %}
-                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagenEjemplo | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200">
+                    {% if inmobiliarium.imagen_ejemplo is not null %}
+                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagen_ejemplo | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200">
                     {% else %}
                         Sin imagen
                     {% endif %}
@@ -44,8 +44,8 @@
                     </form>
                 </td>
                 <td>
-                    {% if inmobiliarium.imagenGenerada is not null %}
-                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagenGenerada | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200    ">
+                    {% if inmobiliarium.imagen_generada is not null %}
+                        <img src="data:image/jpeg;base64,{{ inmobiliarium.imagen_generada | base64_encode }}" alt="{{ inmobiliarium.nombre }}" width="200    ">
                     {% else %}
                         Sin imagen
                     {% endif %}
@@ -58,8 +58,8 @@
                 </td>
                 <td>{{ inmobiliarium.direccion }}</td>
                 <td>{{ inmobiliarium.email }}</td>
-                <td><a href={{ inmobiliarium.linkVenta }}>Link</a></td>
-                <td><a href={{ inmobiliarium.linkAlquiler }}>Link</a></td>
+                <td><a href={{ inmobiliarium.link_venta }}>Link</a></td>
+                <td><a href={{ inmobiliarium.link_alquiler }}>Link</a></td>
                 <td>
                     <a href="{{ path('app_inmobiliaria_show', {'id': inmobiliarium.id}) }}">show</a>
                     <a href="{{ path('app_inmobiliaria_edit', {'id': inmobiliarium.id}) }}">edit</a>

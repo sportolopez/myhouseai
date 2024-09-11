@@ -19,8 +19,9 @@ class Inmobiliaria
     #[ORM\Column(length: 255)]
     private ?string $nombre = null;
 
-    #[ORM\Column]
-    private ?int $visto = null;
+    private ?int $vistos = null;
+
+    private ?int $enviados = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fecha_ultimo_visto = null;
@@ -55,12 +56,9 @@ class Inmobiliaria
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $direccion = null;
 
-    #[ORM\OneToMany(mappedBy: 'inmobiliaria', targetEntity: EmailEnviado::class)]
-    private Collection $emailEnviados;
-
+    
     public function __construct()
     {
-        $this->emailEnviados = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -80,18 +78,30 @@ class Inmobiliaria
         return $this;
     }
 
-    public function getVisto()
+    public function getVistos()
     {
-        return $this->visto;
+        return $this->vistos;
     }
 
-    public function setVisto($visto): static
+    public function setVistos($vistos): static
     {
-        $this->visto = $visto;
+        $this->vistos = $vistos;
 
         return $this;
     }
 
+    
+    public function getEnviados()
+    {
+        return $this->enviados;
+    }
+
+    public function setEnviados($enviados): static
+    {
+        $this->enviados = $enviados;
+
+        return $this;
+    }
     public function getFechaUltimoVisto(): ?\DateTimeInterface
     {
         return $this->fecha_ultimo_visto;
@@ -224,33 +234,4 @@ class Inmobiliaria
         return $this;
     }
 
-    /**
-     * @return Collection<int, EmailEnviado>
-     */
-    public function getEmailEnviados(): Collection
-    {
-        return $this->emailEnviados;
-    }
-
-    public function addEmailEnviado(EmailEnviado $emailEnviado): static
-    {
-        if (!$this->emailEnviados->contains($emailEnviado)) {
-            $this->emailEnviados->add($emailEnviado);
-            $emailEnviado->setInmobiliaria($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmailEnviado(EmailEnviado $emailEnviado): static
-    {
-        if ($this->emailEnviados->removeElement($emailEnviado)) {
-            // set the owning side to null (unless already changed)
-            if ($emailEnviado->getInmobiliaria() === $this) {
-                $emailEnviado->setInmobiliaria(null);
-            }
-        }
-
-        return $this;
-    }
 }

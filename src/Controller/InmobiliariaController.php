@@ -17,8 +17,15 @@ class InmobiliariaController extends AbstractController
     #[Route('/', name: 'app_inmobiliaria_index', methods: ['GET'])]
     public function index(InmobiliariaRepository $inmobiliariaRepository): Response
     {
+        $inmobiliarias = $inmobiliariaRepository->findAllOrderedByImagenEjemplo();
+        /*
+        foreach ($inmobiliarias as &$inmobiliaria) {
+            $inmobiliaria->['imagenEjemploUrl'] = $this->generateUrl('app_inmobiliaria_original', ['id' => $inmobiliaria['id']]);
+            $inmobiliaria['imagenGeneradaUrl'] = $this->generateUrl('app_inmobiliaria_generada', ['id' => $inmobiliaria['id']]);
+        }*/
+
         return $this->render('inmobiliaria/index.html.twig', [
-            'inmobiliarias' => $inmobiliariaRepository->findAllOrderedByImagenEjemplo(),
+            'inmobiliarias' => $inmobiliarias,
         ]);
     }
 
