@@ -31,7 +31,7 @@
                 <td>{{ inmobiliarium.enviados }}</td>
                 <td>{{ inmobiliarium.vistos }}</td>
                 <td>
-                    <a href="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenEjemplo.png" >LINK</a>
+                    <a href="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenOriginal.png" >LINK</a>
                 </td>
                 <td>
                     <form action="{{ path('app_inmobiliaria_upload_imagen',  {'id': inmobiliarium.id, 'tipoImagen': 'imagenEjemplo'}) }}" method="post" enctype="multipart/form-data">
