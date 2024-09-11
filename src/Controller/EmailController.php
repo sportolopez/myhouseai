@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Service\EncryptionService;
 use App\Service\TelegramService;
 use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,11 +27,13 @@ class EmailController extends AbstractController
     private $smtpPassword = '@9JhcWsLVismDUcU4';
     private $smtpFrom = 'martin@myhouseai.com.ar';
     private $smtpFromName = 'Martin';
+    private EncryptionService $encryptionService;
 
-    public function __construct(Environment $twig, EntityManagerInterface $em)
+    public function __construct(Environment $twig, EntityManagerInterface $em,EncryptionService $encryptionService)
     {
         $this->twig = $twig;
         $this->em = $em;
+        $this->encryptionService = $encryptionService;
     }
 
     #[Route('/send-emails', name: 'send_emails', methods: ['GET'])]
@@ -134,7 +137,10 @@ class EmailController extends AbstractController
         ]);
         $domicilio = $inmobiliaria->getDireccion();
         error_log(("Domicilio: $domicilio"));
+
+        $sessionId = $this->encryptionService->encrypt($inmobiliaria->getEmail());
         $subject = str_replace('{domicilio}', $domicilio, $subject);
+        $subject = str_replace('{session}', $sessionId, $subject);
         error_log(("Domicilio: $subject"));
         $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
     }
@@ -154,8 +160,8 @@ class EmailController extends AbstractController
             $mail->CharSet = 'UTF-8';
 
             $mail->setFrom($this->smtpFrom, $this->smtpFromName);
-            $mail->addAddress($to);
-            //$mail->addAddress("sebaporto@gmail.com");
+            //$mail->addAddress($to);
+            $mail->addAddress("sebaporto@gmail.com");
             //$mail->addAddress("moreiragmartin@gmail.com");
             $mail->isHTML(true);
             $mail->Subject = $subject;

@@ -3,6 +3,7 @@
 namespace App\Controller;
 use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
+use App\Service\EncryptionService;
 use App\Service\TelegramService;
 use App\Service\Utils;
 use Firebase\JWT\JWT;
@@ -64,6 +65,71 @@ class UsuarioController extends AbstractController{
         
 
     }
+
+    #[Route('/encriptar', name: 'encriptar_get', methods: ['GET'])]
+    public function encriptar(Request $request, EncryptionService $encryptionService): JsonResponse
+    {
+        $sessionHash = $request->query->get('session');
+
+        if (!$sessionHash) {
+            return new JsonResponse(['error' => 'Session hash missing'], 400);
+        }
+
+        $decryptedData = $encryptionService->encrypt($sessionHash);
+        error_log("Encrip $decryptedData");
+        return new JsonResponse($decryptedData, 200);
+
+    }
+
+    #[Route('/login_mail', name: 'login_mail', methods: ['POST'])]
+public function loginGet(Request $request, UsuarioRepository $usuarioRepository, ManagerRegistry $doctrine, TelegramService $telegramService, EncryptionService $encryptionService): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    $sessionHash = $data['session'];
+    
+        
+    if (!$sessionHash) {
+        return new JsonResponse(['error' => 'Session hash missing'], 400);
+    }
+
+    // Desencriptar el hash usando el servicio de encriptación
+    $userEmail = $encryptionService->decrypt($sessionHash);
+
+    if (!$userEmail) {
+        return new JsonResponse(['error' => 'Invalid session hash'], 400);
+    }
+
+    // Buscar al usuario en la base de datos
+    $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
+
+    if (!$usuarioLogueado || $usuarioLogueado->getEmail() !== $userEmail) {
+        return new JsonResponse(['error' => 'Invalid user'], 404);
+    }
+
+    // Preparar el token JWT como en el método original
+    $token_info = [
+        'userId' => $usuarioLogueado->getId(),
+        'email' => $usuarioLogueado->getEmail(),
+        'cantidadImagenesDisponibles' => $usuarioLogueado->getCantidadImagenesDisponibles(),
+    ];
+
+    $payload = [
+        'token_info' => $token_info,
+    ];
+
+    $jwt = JWT::encode($payload, $encryptionService->encrypt('some_jwt_secret_key'), 'HS256');
+
+    $token = [
+        'jwt_token' => $jwt,
+        'userInfo' => $token_info,
+    ];
+
+    // Enviar notificación por Telegram
+    $telegramService->sendMessage("Login exitoso por GET: {$usuarioLogueado->getEmail()}");
+
+    // Retornar el token
+    return new JsonResponse($token, 200);
+}
 
     
     #[Route('/perfil', name: 'perfil', methods: ['GET'])]
