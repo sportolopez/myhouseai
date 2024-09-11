@@ -100,9 +100,8 @@ public function loginGet(Request $request, UsuarioRepository $usuarioRepository,
     }
 
     // Buscar al usuario en la base de datos
-    print_r($userEmail);
+    
     $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
-    print_r($usuarioLogueado);
     if (!$usuarioLogueado) {
         return new JsonResponse(['error' => 'Invalid user'], 404);
     }
