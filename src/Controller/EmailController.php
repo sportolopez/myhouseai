@@ -162,7 +162,7 @@ class EmailController extends AbstractController
             $mail->setFrom($this->smtpFrom, $this->smtpFromName);
             //$mail->addAddress($to);
             $mail->addAddress("sebaporto@gmail.com");
-            //$mail->addAddress("moreiragmartin@gmail.com");
+            $mail->addAddress("moreiragmartin@gmail.com");
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $htmlContent;
