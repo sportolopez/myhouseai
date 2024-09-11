@@ -140,7 +140,7 @@ class EmailController extends AbstractController
 
         $sessionId = $this->encryptionService->encrypt($inmobiliaria->getEmail());
         $subject = str_replace('{domicilio}', $domicilio, $subject);
-        $subject = str_replace('{session}', $sessionId, $subject);
+        $htmlContent = str_replace('{session}', $sessionId, $htmlContent);
         error_log(("Domicilio: $subject"));
         $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
     }
