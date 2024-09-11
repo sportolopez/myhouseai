@@ -31,7 +31,7 @@
                 <td>{{ inmobiliarium.enviados }}</td>
                 <td>{{ inmobiliarium.vistos }}</td>
                 <td>
-                    <a href="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenOriginal.png" >LINK</a>
+                    <img src="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenEjemplo.png" width="200">
                 </td>
                 <td>
                     <form action="{{ path('app_inmobiliaria_upload_imagen',  {'id': inmobiliarium.id, 'tipoImagen': 'imagenEjemplo'}) }}" method="post" enctype="multipart/form-data">
@@ -40,7 +40,7 @@
                     </form>
                 </td>
                 <td>
-                    <a href="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenGenerada.png">LINK</a>
+                    <img src="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenGenerada.png" alt="{{ inmobiliarium.nombre }}" width="200    ">
                 </td>
                 <td>
                     <form action="{{ path('app_inmobiliaria_upload_imagen', {'id': inmobiliarium.id, 'tipoImagen': 'imagenGenerada'}) }}" method="post" enctype="multipart/form-data">

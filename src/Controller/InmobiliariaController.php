@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/inmobiliaria')]
@@ -116,7 +117,6 @@ class InmobiliariaController extends AbstractController
         return $this->redirectToRoute('app_inmobiliaria_index', [], Response::HTTP_SEE_OTHER);
     }
 
-
     #[Route('/{id}/imagenOriginal.png', name: 'app_inmobiliaria_original', methods: ['GET'])]
     #[Route('/{id}/imagenGenerada.png', name: 'app_inmobiliaria_generada', methods: ['GET'])]
     public function imagenOriginal(Request $request, InmobiliariaRepository $inmobiliariaRepository, $id): Response
@@ -127,39 +127,99 @@ class InmobiliariaController extends AbstractController
         if (!$inmobiliarium) {
             throw $this->createNotFoundException('Inmobiliaria no encontrada.');
         }
-
+    
         // Determinar qué imagen devolver
         $imageType = $request->get('_route') === 'app_inmobiliaria_original' ? 'original' : 'generada';
-
+    
         if ($imageType === 'original') {
             $imageContent = $inmobiliarium->getImagenEjemplo();
         } else {
             $imageContent = $inmobiliarium->getImagenGenerada();
         }
-
+    
         // Verificar si el contenido es válido y convertir el recurso a una cadena si es necesario
         if (is_resource($imageContent)) {
-            // Leer el contenido del recurso y convertirlo en una cadena
             $imageContent = stream_get_contents($imageContent);
         }
-
+    
         if ($imageContent === false || $imageContent === null) {
             throw $this->createNotFoundException('Imagen no encontrada.');
         }
-
-        // Determinar el tipo MIME (aquí asumimos que es PNG)
-        $mimeType = 'image/png';
-
+    
+        // Crear la imagen desde el string
+        $image = imagecreatefromstring($imageContent);
+        if ($image === false) {
+            throw new \Exception('Error al crear la imagen desde los datos.');
+        }
+    
+        // Corregir la orientación usando los datos EXIF si es una imagen JPEG
+        if ($imageType === 'original' && function_exists('exif_read_data')) {
+            $stream = fopen('data://text/plain;base64,' . base64_encode($imageContent), 'rb');
+            $exif = exif_read_data($stream);
+            fclose($stream);
+    
+            if (isset($exif['Orientation'])) {
+                switch ($exif['Orientation']) {
+                    case 3:
+                        $image = imagerotate($image, 180, 0); // Rotar 180 grados
+                        break;
+                    case 6:
+                        $image = imagerotate($image, -90, 0); // Rotar 90 grados hacia la izquierda
+                        break;
+                    case 8:
+                        $image = imagerotate($image, 90, 0); // Rotar 90 grados hacia la derecha
+                        break;
+                }
+            }
+        }
+    
+        // Redimensionar la imagen (por ejemplo, a 800x600)
+        $newWidth = 800;
+        $newHeight = 600;
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $ratio = min($newWidth / $width, $newHeight / $height);
+        $resizedWidth = (int)($width * $ratio);
+        $resizedHeight = (int)($height * $ratio);
+    
+        // Crear la nueva imagen redimensionada
+        $resizedImage = imagecreatetruecolor($resizedWidth, $resizedHeight);
+        imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $resizedWidth, $resizedHeight, $width, $height);
+    
+        // Capturar la salida de la imagen redimensionada en JPG
+        ob_start();
+        imagejpeg($resizedImage, null, 90); // Convertir la imagen a JPG con calidad 90
+        $imageContent = ob_get_clean();
+    
+        // Liberar memoria
+        imagedestroy($image);
+        imagedestroy($resizedImage);
+    
         // Crear la respuesta con el contenido de la imagen
         $response = new Response($imageContent);
-        
-        // Establecer el Content-Type correctamente
-        $response->headers->set('Content-Type', $mimeType);
-
-        // Retornar la respuesta con el contenido de la imagen
+        $response->headers->set('Content-Type', 'image/jpeg');
+        $response->setPublic();
+        $response->setMaxAge(604800); // Cachear en el navegador por 7 días
+        $response->headers->set('Cache-Control', 'public, max-age=604800');
+        $lastModified = new \DateTime();
+        $response->setLastModified($lastModified);
+    
+        // Definir el nombre del archivo cuando el usuario lo descargue (opcional)
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            $id . '_' . $imageType . '.jpg'
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+        $etag = md5($imageContent); // Puedes usar un hash del contenido o alguna otra lógica
+        $response->headers->set('ETag', $etag);
+        // Comprobar si el contenido no ha cambiado para devolver 304 Not Modified
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+    
         return $response;
     }
-
-
+    
+    
     
 }
