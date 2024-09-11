@@ -19,7 +19,10 @@ class EncryptionService
         $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($this->cipher));
         $encrypted = openssl_encrypt($data, $this->cipher, $this->secretKey, 0, $iv);
         error_log("iv $iv");
-        return base64_encode($encrypted . '::' . $iv);
+        $base64Encoded = base64_encode($encrypted . '::' . $iv);
+
+        // Codificar para URL
+        return urlencode($base64Encoded);
     }
 
     // Método para desencriptar datos
