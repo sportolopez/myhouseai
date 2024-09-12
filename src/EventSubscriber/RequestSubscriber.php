@@ -2,6 +2,7 @@
 
 namespace App\EventSubscriber;
 
+use App\Controller\UsuarioController;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -51,7 +52,7 @@ class RequestSubscriber implements EventSubscriberInterface
 
         // Decodificar el JWT
         try {
-            $payload = JWT::decode($tokenJwt, new Key('secret_key', 'HS256'));
+            $payload = JWT::decode($tokenJwt, new Key(UsuarioController::SECRET_KEY, 'HS256'));
 
             // Agregar el payload a la solicitud para que esté disponible en el controlador
             $request->attributes->set('jwt_payload', $payload);

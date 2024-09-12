@@ -119,15 +119,14 @@ public function loginGet(Request $request, UsuarioRepository $usuarioRepository,
         'token_info' => $token_info,
     ];
 
-    $jwt = JWT::encode($payload, $encryptionService->encrypt(self::SECRET_KEY), 'HS256');
-
-    $token = [
+    $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
+    
+    $token =  array(
         'jwt_token' => $jwt,
-        'userInfo' => $token_info,
-    ];
-
-    // Enviar notificación por Telegram
-    $telegramService->sendMessage("Login exitoso por GET: {$usuarioLogueado->getEmail()}");
+        'userInfo' => $token_info
+    );
+    //error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
+    $telegramService->sendMessage("Login exitoso EMAIL: {$usuarioLogueado->getEmail()}");
 
     // Retornar el token
     return new JsonResponse($token, 200);
