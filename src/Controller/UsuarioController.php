@@ -20,6 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UsuarioController extends AbstractController{
 
+    public CONST SECRET_KEY = 'secret_key';
+
     #[Route('/login', name: 'login', methods: ['POST'])]
     public function login(Request $request, UsuarioRepository $usuarioRepository,ManagerRegistry $doctrine, TelegramService $telegramService): JsonResponse
     {
@@ -47,12 +49,12 @@ class UsuarioController extends AbstractController{
         $token_info = $user_info;
         $token_info['userId'] = $usuarioLogueado->getId();
         $token_info['cantidadImagenesDisponibles'] = $usuarioLogueado->getCantidadImagenesDisponibles();
-        $secret_key = 'secret_key';
+
         $payload = array(
             "token_info" => $token_info
         );
     
-        $jwt = JWT::encode($payload, $secret_key, 'HS256');
+        $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
     
         $token =  array(
             'jwt_token' => $jwt,
@@ -117,7 +119,7 @@ public function loginGet(Request $request, UsuarioRepository $usuarioRepository,
         'token_info' => $token_info,
     ];
 
-    $jwt = JWT::encode($payload, $encryptionService->encrypt('some_jwt_secret_key'), 'HS256');
+    $jwt = JWT::encode($payload, $encryptionService->encrypt(self::SECRET_KEY), 'HS256');
 
     $token = [
         'jwt_token' => $jwt,
