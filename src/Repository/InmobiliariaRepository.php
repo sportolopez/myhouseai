@@ -49,7 +49,7 @@ class InmobiliariaRepository extends ServiceEntityRepository
         public function findAllOrderedByImagenEjemplo(): array
         {
             return $this->createQueryBuilder('i')
-                ->select('i.id','i.nombre','i.contactadoWp','i.direccion','i.email','i.link_venta', 'i.link_alquiler','(SELECT COUNT(e.id) FROM App\Entity\EmailEnviado e WHERE e.inmobiliaria = i AND e.visto = true) AS vistos','(SELECT COUNT(ee.id) FROM App\Entity\EmailEnviado ee WHERE ee.inmobiliaria = i) AS enviados')
+                ->select('i.id','i.nombre','i.contactadoWp','i.whatsapp','i.direccion','i.email','i.link_venta', 'i.link_alquiler','(SELECT COUNT(e.id) FROM App\Entity\EmailEnviado e WHERE e.inmobiliaria = i AND e.visto = true) AS vistos','(SELECT COUNT(ee.id) FROM App\Entity\EmailEnviado ee WHERE ee.inmobiliaria = i) AS enviados')
                 ->orderBy('i.imagen_ejemplo', 'DESC') // Usa otro criterio si `imagenEjemplo` no es adecuado para ordenamiento
                 ->getQuery()
                 ->getResult();
