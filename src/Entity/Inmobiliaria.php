@@ -56,6 +56,9 @@ class Inmobiliaria
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $direccion = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $contactadoWp = null;
+
     
     public function __construct()
     {
@@ -230,6 +233,18 @@ class Inmobiliaria
     public function setDireccion(?string $direccion): static
     {
         $this->direccion = $direccion;
+
+        return $this;
+    }
+
+    public function getContactadoWp(): ?int
+    {
+        return $this->contactadoWp;
+    }
+
+    public function setContactadoWp(?int $contactadoWp): static
+    {
+        $this->contactadoWp = $contactadoWp;
 
         return $this;
     }

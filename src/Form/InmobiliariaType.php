@@ -16,6 +16,7 @@ class InmobiliariaType extends AbstractType
             ->add('direccion')
             ->add('email')
             ->add('whatsapp')
+            ->add('contactadoWp')
             ->add('telefono')
             ->add('link_venta')
             ->add('link_alquiler')
