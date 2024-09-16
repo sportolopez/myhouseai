@@ -37,6 +37,9 @@ class Imagen
     #[ORM\Column(type: Types::BLOB, nullable: true)]
     private $declutteredImage = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $ip_remota = null;
+
     public function __construct()
     {
     }
@@ -135,6 +138,18 @@ class Imagen
     public function setDeclutteredImage($declutteredImage): static
     {
         $this->declutteredImage = $declutteredImage;
+
+        return $this;
+    }
+
+    public function getIpRemota(): ?string
+    {
+        return $this->ip_remota;
+    }
+
+    public function setIpRemota(string $ip_remota): static
+    {
+        $this->ip_remota = $ip_remota;
 
         return $this;
     }

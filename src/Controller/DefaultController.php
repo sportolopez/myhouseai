@@ -161,6 +161,96 @@ class DefaultController extends AbstractController
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
     
+    #[Route('/generar_free', name: 'generar_free', methods: ['POST'])]
+    public function generarFree(
+        ManagerRegistry $doctrine,
+        Request $request,
+        UsuarioRepository $usuarioRepository,
+        ImagenRepository $imagenRepository,
+        ApiClientService $apiClientService,
+        TelegramService $telegramService
+    ): JsonResponse {
+        $entityManager = $doctrine->getManager();
+    
+        // Obtener la IP del cliente
+        $clientIp = $request->getClientIp();
+    
+        // Verificar si ya existe una imagen generada desde esta IP
+        $imagenExistente = $imagenRepository->findOneBy(['ip_remota' => $clientIp]);
+    
+        if ($imagenExistente) {
+            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
+        }
+    
+        // Obtener o crear el usuario "Usuario Free"
+        $emailUsuarioFree = 'sebaporto@gmail.com';
+        $usuarioFree = $usuarioRepository->findOneBy(['email' => $emailUsuarioFree]);
+    
+        if (!$usuarioFree) {
+            // Crear el usuario "Usuario Free" si no existe
+            $usuarioFree = new Usuario();
+            $usuarioFree->setEmail($emailUsuarioFree);
+            $usuarioFree->setNombre('Usuario Free');
+            $usuarioFree->setCantidadImagenesDisponibles(0);  // No permitimos más imágenes para este usuario, es solo para tracking
+            $entityManager->persist($usuarioFree);
+            $entityManager->flush();
+        }
+    
+        // Obtener los datos de la solicitud
+        $data = json_decode($request->getContent(), true);
+    
+        if (!isset($data['image'])) {
+            return new JsonResponse(['error' => 'Se debe subir una imagen'], Response::HTTP_BAD_REQUEST);
+        }
+    
+        if (!$data['roomType'] || !$data['style']) {
+            return new JsonResponse(['error' => 'Se debe enviar roomType y style']);
+        }
+    
+        $base64Image = $data['image'];
+    
+        // Decodificar la imagen base64
+        $imageData = base64_decode($base64Image);
+        if ($imageData === false) {
+            return new JsonResponse(['error' => 'Datos de imagen base64 inválidos'], Response::HTTP_BAD_REQUEST);
+        }
+    
+        // Generar un UUID para el nombre de la imagen
+        $uuid = Uuid::uuid4()->toString();
+    
+        // Crear y asociar la imagen al "Usuario Free"
+        $imagen = new Imagen();
+        $imagen->setId($uuid);
+        $imagen->setImgOrigen($imageData);
+        $imagen->setUsuario($usuarioFree);  // Asociar la imagen al "Usuario Free"
+        $imagen->setEstilo($data['style']);
+        $imagen->setTipoHabitacion($data['roomType']);
+        $imagen->setFecha(new DateTime());
+    
+        // Guardar la IP remota
+        $imagen->setIpRemota($clientIp);
+    
+        $entityManager->persist($imagen);
+        $entityManager->flush();
+    
+        if (!array_key_exists('declutter_mode', $data)) {
+            $data['declutter_mode'] = "off";
+        }
+    
+        // Generar la imagen
+        $renderId = $apiClientService->generarImagen($imagen, $data['declutter_mode']);
+        $imagen->setRenderId($renderId);
+    
+        $entityManager->persist($imagen);
+        $entityManager->flush();
+    
+        // Notificación a Telegram
+        $telegramService->sendMessage("📷 Se ejecutó generar_free desde la IP: {$clientIp} para el usuario 'Usuario Free'");
+    
+        return new JsonResponse(['generation_id' => $uuid], JsonResponse::HTTP_OK);
+    }
+    
+
 
     #[Route('/status/{uuid}', name: 'status')]
     public function status(
