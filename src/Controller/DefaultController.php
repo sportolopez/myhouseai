@@ -174,15 +174,8 @@ class DefaultController extends AbstractController
     
         // Obtener la IP del cliente
         $clientIp = $request->getClientIp();
-    
-        // Verificar si ya existe una imagen generada desde esta IP
-        $imagenExistente = $imagenRepository->findOneBy(['ip_remota' => $clientIp]);
-    
-        if ($imagenExistente) {
-            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
-        }
-    
-        // Obtener o crear el usuario "Usuario Free"
+
+                // Obtener o crear el usuario "Usuario Free"
         $emailUsuarioFree = 'sebaporto@gmail.com';
         $usuarioFree = $usuarioRepository->findOneBy(['email' => $emailUsuarioFree]);
     
@@ -195,6 +188,28 @@ class DefaultController extends AbstractController
             $entityManager->persist($usuarioFree);
             $entityManager->flush();
         }
+                // Generar variación
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['generation_id'])) {
+            $imagen = $imagenRepository->findOneById($data['generation_id']);
+    
+            if (!$imagen) {
+                return new JsonResponse(['error' => 'No se encontró una imagen con ese generation_id']);
+            }
+    
+            $apiClientService->crearVariacionParaRender($imagen->getRenderId(), $data['roomType'], $data['style']);
+    
+            return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' =>100]);
+        }
+
+        // Verificar si ya existe una imagen generada desde esta IP
+        $imagenExistente = $imagenRepository->findOneBy(['ip_remota' => $clientIp]);
+    
+        if ($imagenExistente) {
+            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
+        }
+    
+
     
         // Obtener los datos de la solicitud
         $data = json_decode($request->getContent(), true);
