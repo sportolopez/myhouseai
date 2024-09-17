@@ -24,7 +24,7 @@ class EmailController extends AbstractController
     private $smtpHost = 'c1802222.ferozo.com';
     private $smtpPort = 465;
     private $smtpUser = 'ventas@myhouseai.com';
-    private $smtpPassword = '@9JhcWsLVismDUcU4';
+    private $smtpPassword = '1@2z5NT0xY';
     private $smtpFrom = 'martin@myhouseai.com.ar';
     private $smtpFromName = 'Martin';
     private EncryptionService $encryptionService;
