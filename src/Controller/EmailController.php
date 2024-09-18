@@ -74,7 +74,7 @@ class EmailController extends AbstractController
 
 
     #[Route('/track-email/{id}', name: 'track_email', methods: ['GET'])]
-    public function trackEmail($id, EntityManagerInterface $entityManager, TelegramService $telegramService): Response
+    public function trackEmail($id, EntityManagerInterface $entityManager, TelegramService $telegramService, Request $request): Response
     {
         $emailEnviado = $entityManager->getRepository(EmailEnviado::class)->find($id);
 
@@ -82,6 +82,7 @@ class EmailController extends AbstractController
             return new Response(404);
         }
 
+        
         $emailEnviado->setVisto(1);
         $emailEnviado->setVistoFecha(new \DateTime());
         $entityManager->flush();
@@ -92,8 +93,8 @@ class EmailController extends AbstractController
         $response->setContent(base64_decode(
             'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
         ));
-
-        $telegramService->sendMessage("📧: Se confirma lectura de {$emailEnviado->getInmobiliaria()->getNombre()}.");
+        $clientIp = $request->getClientIp();
+        $telegramService->sendMessage("📧: Se confirma lectura de {$emailEnviado->getInmobiliaria()->getNombre()} de {$clientIp}.");
 
         return $response;
     }
