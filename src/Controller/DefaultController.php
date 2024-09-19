@@ -7,6 +7,7 @@ use App\Repository\ImagenRepository;
 use App\Repository\PlanesRepository;
 use App\Repository\UsuarioRepository;
 use App\Repository\VariacionRepository;
+use App\Service\EncryptionService;
 use App\Service\TelegramService;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -168,6 +169,7 @@ class DefaultController extends AbstractController
         UsuarioRepository $usuarioRepository,
         ImagenRepository $imagenRepository,
         ApiClientService $apiClientService,
+        EncryptionService $encryptionService,
         TelegramService $telegramService
     ): JsonResponse {
         $entityManager = $doctrine->getManager();
@@ -188,8 +190,19 @@ class DefaultController extends AbstractController
             $entityManager->persist($usuarioFree);
             $entityManager->flush();
         }
+        
                 // Generar variación
         $data = json_decode($request->getContent(), true);
+        if (isset($data['idgenerar'])) {
+
+            $sessionHash = $data['idgenerar'];
+            // Desencriptar el hash usando el servicio de encriptación
+            $userEmail = $encryptionService->decrypt($sessionHash);
+
+            $telegramService->sendMessage("El usuario {$userEmail} entro en generar free");
+        }
+        
+
         if (isset($data['generation_id'])) {
             $imagen = $imagenRepository->findOneById($data['generation_id']);
     
@@ -210,10 +223,7 @@ class DefaultController extends AbstractController
         }
     
 
-    
-        // Obtener los datos de la solicitud
-        $data = json_decode($request->getContent(), true);
-    
+
         if (!isset($data['image'])) {
             return new JsonResponse(['error' => 'Se debe subir una imagen'], Response::HTTP_BAD_REQUEST);
         }
