@@ -17,7 +17,7 @@ class ScrapperController extends AbstractController
     private $inmobiliariaRepository;
     private $doctrine;
 
-    public function __construct(InmobiliariaRepository $inmobiliariaRepository,ManagerRegistry $doctrine)
+    public function __construct(InmobiliariaRepository $inmobiliariaRepository, ManagerRegistry $doctrine)
     {
         $this->inmobiliariaRepository = $inmobiliariaRepository;
         $this->doctrine = $doctrine;
@@ -27,44 +27,61 @@ class ScrapperController extends AbstractController
     public function scrape(): Response
     {
         $client = new HttpBrowser(HttpClient::create());
-        $crawler = $client->request('GET', 'https://www.buscadorprop.com.ar/inmobiliarias/provincia-de-buenos-aires');
+        $baseUrl = 'https://www.buscadorprop.com.ar';
+        // Step 1: Scrape the main page to get the links
+        $crawler = $client->request('GET', $baseUrl . "/inmobiliarias");
+        $links = $crawler->filter('.inmobiliarias__item__sublist__item a')->each(function (Crawler $node) {
+            return $node->attr('href');
+        });
 
+        // Initialize counters
+        $insertedCount = 0;
         $result = '';
 
-        // Seleccionar todas las inmobiliarias
-        $crawler->filter('.inmobiliarias__ficha')->each(function (Crawler $node) use (&$result) {
-            $nombre = $node->filter('.inmobiliarias__ficha__title')->text();
-            $telefono = $node->filter('.telefono')->count() ? $node->filter('.telefono')->text() : 'No disponible';
+        // Step 2: Process each link
+        foreach ($links as $relativeUrl) {
+            $url = preg_match('#^https?://#', $relativeUrl) ? $relativeUrl : $baseUrl . $relativeUrl;
+            $crawler = $client->request('GET', $url);
 
-            // Buscar email en enlaces con mailto
-            $email = $node->filter('a[href^="mailto"]')->count() ? $node->filter('a[href^="mailto"]')->attr('href') : 'No disponible';
-            $email = str_replace('mailto:', '', $email);
+            // Scrape data from each page
+            $crawler->filter('.inmobiliarias__ficha')->each(function (Crawler $node) use (&$result, &$insertedCount) {
+                $nombre = $node->filter('.inmobiliarias__ficha__title')->text();
+                $telefono = $node->filter('.telefono')->count() ? $node->filter('.telefono')->text() : 'No disponible';
 
-            // Extraer número de WhatsApp
-            $whatsapp = $node->filter('a[href*="api.whatsapp.com/send"]')->count() ? $node->filter('a[href*="api.whatsapp.com/send"]')->text() : 'No disponible';
+                $email = $node->filter('a[href^="mailto"]')->count() ? $node->filter('a[href^="mailto"]')->attr('href') : 'No disponible';
+                $email = str_replace('mailto:', '', $email);
 
-            // Verificar si ya existe
-            $inmobiliaria = $this->inmobiliariaRepository->findOneByEmail($email);
+                $whatsapp = $node->filter('a[href*="api.whatsapp.com/send"]')->count() ? $node->filter('a[href*="api.whatsapp.com/send"]')->text() : 'No disponible';
 
-            if ($inmobiliaria) {
-                $result .= "Inmobiliaria ya existe: $nombre<br>";
-            } else {
-                // Crear y guardar una nueva inmobiliaria
-                $inmobiliaria = new Inmobiliaria();
-                $inmobiliaria->setNombre($nombre);
-                $inmobiliaria->setTelefono($telefono);
-                $inmobiliaria->setEmail($email);
-                $inmobiliaria->setWhatsapp($whatsapp);
+                // Check if the inmobiliaria already exists
+                $inmobiliaria = $this->inmobiliariaRepository->findOneByEmail($email);
 
-                $entityManager = $this->doctrine->getManager();
-                $entityManager->persist($inmobiliaria);
-                $entityManager->flush();
+                if ($inmobiliaria) {
+                    $result .= "Inmobiliaria ya existe: $nombre<br>";
+                } else {
+                    // Create and save a new inmobiliaria
+                    $inmobiliaria = new Inmobiliaria();
+                    $inmobiliaria->setNombre($nombre);
+                    $inmobiliaria->setTelefono($telefono);
+                    $inmobiliaria->setEmail($email);
+                    $inmobiliaria->setWhatsapp($whatsapp);
+/*
+                    $entityManager = $this->doctrine->getManager();
+                    $entityManager->persist($inmobiliaria);
+                    $entityManager->flush();*/
 
-                $result .= "Nueva inmobiliaria agregada: $nombre<br>";
-            }
+                    $insertedCount++; // Increment the counter
+                    $result .= "Nueva inmobiliaria agregada: $nombre<br>";
+                }
 
-           
-        });
+                $result .= "Teléfono: $telefono<br>";
+                $result .= "Email: $email<br>";
+                $result .= "WhatsApp: $whatsapp<br>";
+                $result .= "-----------------------------------<br>";
+            });
+        }
+
+        $result .= "<br>Total inmobiliarias insertadas: $insertedCount";
 
         return new Response($result);
     }
