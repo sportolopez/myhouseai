@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Inmobiliaria;
 use App\Repository\InmobiliariaRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,12 +14,13 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class ScrapperController extends AbstractController
 {
-
     private $inmobiliariaRepository;
+    private $doctrine;
 
-    public function __construct(InmobiliariaRepository $inmobiliariaRepository)
+    public function __construct(InmobiliariaRepository $inmobiliariaRepository,ManagerRegistry $doctrine)
     {
         $this->inmobiliariaRepository = $inmobiliariaRepository;
+        $this->doctrine = $doctrine;
     }
 
     #[Route('/scrape/buscadorprop', name: 'buscadorprop', methods: ['GET'])]
@@ -40,16 +43,30 @@ class ScrapperController extends AbstractController
             // Extraer número de WhatsApp
             $whatsapp = $node->filter('a[href*="api.whatsapp.com/send"]')->count() ? $node->filter('a[href*="api.whatsapp.com/send"]')->text() : 'No disponible';
 
-            $result .= "Nombre: $nombre<br>";
+            // Verificar si ya existe
+            $inmobiliaria = $this->inmobiliariaRepository->findOneByEmail($email);
+
+            if ($inmobiliaria) {
+                $result .= "Inmobiliaria ya existe: $nombre<br>";
+            } else {
+                // Crear y guardar una nueva inmobiliaria
+                $inmobiliaria = new Inmobiliaria();
+                $inmobiliaria->setNombre($nombre);
+                $inmobiliaria->setTelefono($telefono);
+                $inmobiliaria->setEmail($email);
+                $inmobiliaria->setWhatsapp($whatsapp);
+
+                $entityManager = $this->doctrine->getManager();
+                $entityManager->persist($inmobiliaria);
+                $entityManager->flush();
+
+                $result .= "Nueva inmobiliaria agregada: $nombre<br>";
+            }
+
             $result .= "Teléfono: $telefono<br>";
             $result .= "Email: $email<br>";
             $result .= "WhatsApp: $whatsapp<br>";
             $result .= "-----------------------------------<br>";
-
-            $inmobiliaria = $this->inmobiliariaRepository->findOneByEmail($email);
-            if($inmobiliaria)
-                print_r("Inmobiliaria ya existe");
-            
         });
 
         return new Response($result);
