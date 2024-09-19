@@ -63,10 +63,7 @@ class ScrapperController extends AbstractController
                 $result .= "Nueva inmobiliaria agregada: $nombre<br>";
             }
 
-            $result .= "Teléfono: $telefono<br>";
-            $result .= "Email: $email<br>";
-            $result .= "WhatsApp: $whatsapp<br>";
-            $result .= "-----------------------------------<br>";
+           
         });
 
         return new Response($result);
