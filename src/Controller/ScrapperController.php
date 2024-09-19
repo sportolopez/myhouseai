@@ -65,10 +65,10 @@ class ScrapperController extends AbstractController
                     $inmobiliaria->setTelefono($telefono);
                     $inmobiliaria->setEmail($email);
                     $inmobiliaria->setWhatsapp($whatsapp);
-/*
+
                     $entityManager = $this->doctrine->getManager();
                     $entityManager->persist($inmobiliaria);
-                    $entityManager->flush();*/
+                    $entityManager->flush();
 
                     $insertedCount++; // Increment the counter
                     $result .= "Nueva inmobiliaria agregada: $nombre<br>";
