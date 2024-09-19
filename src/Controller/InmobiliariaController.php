@@ -143,7 +143,7 @@ class InmobiliariaController extends AbstractController
         }
     
         if ($imageContent === false || $imageContent === null) {
-            throw $this->createNotFoundException('Imagen no encontrada.');
+            return new Response('', Response::HTTP_NOT_FOUND);
         }
     
         // Crear la imagen desde el string

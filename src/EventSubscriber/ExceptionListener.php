@@ -41,7 +41,7 @@ class ExceptionListener implements EventSubscriberInterface
         // Codifica manualmente el array de respuesta como JSON
         $jsonResponse = json_encode($response, JSON_UNESCAPED_UNICODE);
 
-        $this->telegramService->sendMessage("ERROR:" . $jsonResponse );
+        $this->telegramService->sendMessage("ERROR:" . $exception->getMessage());
     
         // Establece la respuesta JSON
         $event->setResponse(new JsonResponse($jsonResponse, $response['code'], [], true));
