@@ -27,7 +27,6 @@ class ExceptionListener implements EventSubscriberInterface
 
     public function onKernelException(ExceptionEvent $event)
     {
-        error_log("Entro el onKernelException.");
         // Obtiene la excepción lanzada
         $exception = $event->getThrowable();
 
@@ -42,7 +41,8 @@ class ExceptionListener implements EventSubscriberInterface
         $jsonResponse = json_encode($response, JSON_UNESCAPED_UNICODE);
 
         $this->telegramService->sendMessage("ERROR:" . $exception->getMessage());
-    
+        error_log($exception->getTraceAsString());
+        
         // Establece la respuesta JSON
         $event->setResponse(new JsonResponse($jsonResponse, $response['code'], [], true));
     }

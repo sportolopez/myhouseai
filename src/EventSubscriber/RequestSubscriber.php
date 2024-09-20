@@ -24,6 +24,9 @@ class RequestSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
         $routeName = $request->attributes->get('_route'); // Obtiene el nombre de la ruta
+        $requestBody = json_decode($request->getContent(), true);
+ 
+        error_log("Request: URL: {$request->getRequestUri()} / QueryParameters: {$request->getQueryString()} / Body {$requestBody} ");
 
         // Guardar tiempo de inicio
         $request->attributes->set('request_start_time', microtime(true));
@@ -35,7 +38,6 @@ class RequestSubscriber implements EventSubscriberInterface
             return;
         }
         error_log("La request esta protegida: " .  $routeName);
-        error_log("Entro el onKernelRequest.");
 
         $authHeader = $request->headers->get('Token');
 
