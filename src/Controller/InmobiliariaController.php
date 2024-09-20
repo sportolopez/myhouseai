@@ -125,7 +125,7 @@ class InmobiliariaController extends AbstractController
         $inmobiliarium = $inmobiliariaRepository->find($id);
         
         if (!$inmobiliarium) {
-            throw $this->createNotFoundException('Inmobiliaria no encontrada.');
+            throw $this->createNotFoundException('Inmobiliaria no encontrada.' . $id);
         }
     
         // Determinar qué imagen devolver
@@ -145,13 +145,13 @@ class InmobiliariaController extends AbstractController
         if ($imageContent === false || $imageContent === null) {
             return new Response('', Response::HTTP_NOT_FOUND);
         }
-    
+        /*
         // Crear la imagen desde el string
         $image = imagecreatefromstring($imageContent);
         if ($image === false) {
             throw new \Exception('Error al crear la imagen desde los datos.');
         }
-    
+        
         // Corregir la orientación usando los datos EXIF si es una imagen JPEG
         if ($imageType === 'original' && function_exists('exif_read_data')) {
             $stream = fopen('data://text/plain;base64,' . base64_encode($imageContent), 'rb');
@@ -194,7 +194,7 @@ class InmobiliariaController extends AbstractController
         // Liberar memoria
         imagedestroy($image);
         imagedestroy($resizedImage);
-    
+    */
         // Crear la respuesta con el contenido de la imagen
         $response = new Response($imageContent);
         $response->headers->set('Content-Type', 'image/jpeg');

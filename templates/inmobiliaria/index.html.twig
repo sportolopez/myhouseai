@@ -35,7 +35,7 @@
                 <td>{{ inmobiliarium.contactadoWp }}</td>
                 <td>{{ inmobiliarium.whatsapp }}</td>
                 <td>
-                    <img src="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenOriginal.png" width="200">
+                    <img src="{{ inmobiliarium.id }}/imagenOriginal.png" width="200">
                 </td>
                 <td>
                     <form action="{{ path('app_inmobiliaria_upload_imagen',  {'id': inmobiliarium.id, 'tipoImagen': 'imagenEjemplo'}) }}" method="post" enctype="multipart/form-data">
@@ -44,7 +44,7 @@
                     </form>
                 </td>
                 <td>
-                    <img src="https://myhouseai.com/api/inmobiliaria/{{ inmobiliarium.id }}/imagenGenerada.png" alt="{{ inmobiliarium.nombre }}" width="200    ">
+                    <img src="{{ inmobiliarium.id }}/imagenGenerada.png" alt="{{ inmobiliarium.nombre }}" width="200    ">
                 </td>
                 <td>
                     <form action="{{ path('app_inmobiliaria_upload_imagen', {'id': inmobiliarium.id, 'tipoImagen': 'imagenGenerada'}) }}" method="post" enctype="multipart/form-data">
