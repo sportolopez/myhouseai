@@ -83,54 +83,74 @@ class UsuarioController extends AbstractController{
 
     }
 
-    #[Route('/login_mail', name: 'login_mail', methods: ['POST'])]
-public function loginGet(Request $request, UsuarioRepository $usuarioRepository, ManagerRegistry $doctrine, TelegramService $telegramService, EncryptionService $encryptionService): JsonResponse
-{
-    $data = json_decode($request->getContent(), true);
-    $sessionHash = $data['session'];
-    
+    #[Route('/click_mail', name: 'click_mail', methods: ['POST'])]
+    public function clickMail(Request $request, UsuarioRepository $usuarioRepository, ManagerRegistry $doctrine, TelegramService $telegramService, EncryptionService $encryptionService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $sessionHash = $data['idgenerar'];
         
-    if (!$sessionHash) {
-        return new JsonResponse(['error' => 'Session hash missing'], 400);
+            
+        if (!$sessionHash) {
+            return new JsonResponse(['error' => 'Session hash missing'], 400);
+        }
+
+        // Desencriptar el hash usando el servicio de encriptación
+        $userEmail = $encryptionService->decrypt($sessionHash);
+
+        $telegramService->sendMessage("Click en el link del mail: {$userEmail}");
+
+        // Retornar el token
+        return new JsonResponse(200);
     }
 
-    // Desencriptar el hash usando el servicio de encriptación
-    $userEmail = $encryptionService->decrypt($sessionHash);
+    #[Route('/login_mail', name: 'login_mail', methods: ['POST'])]
+    public function loginGet(Request $request, UsuarioRepository $usuarioRepository, ManagerRegistry $doctrine, TelegramService $telegramService, EncryptionService $encryptionService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $sessionHash = $data['session'];
+        
+            
+        if (!$sessionHash) {
+            return new JsonResponse(['error' => 'Session hash missing'], 400);
+        }
 
-    if (!$userEmail) {
-        return new JsonResponse(['error' => 'Invalid session hash'], 400);
+        // Desencriptar el hash usando el servicio de encriptación
+        $userEmail = $encryptionService->decrypt($sessionHash);
+
+        if (!$userEmail) {
+            return new JsonResponse(['error' => 'Invalid session hash'], 400);
+        }
+
+        // Buscar al usuario en la base de datos
+        
+        $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
+        if (!$usuarioLogueado) {
+            return new JsonResponse(['error' => 'Invalid user'], 404);
+        }
+
+        // Preparar el token JWT como en el método original
+        $token_info = [
+            'userId' => $usuarioLogueado->getId(),
+            'email' => $usuarioLogueado->getEmail(),
+            'cantidadImagenesDisponibles' => $usuarioLogueado->getCantidadImagenesDisponibles(),
+        ];
+
+        $payload = [
+            'token_info' => $token_info,
+        ];
+
+        $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
+        
+        $token =  array(
+            'jwt_token' => $jwt,
+            'userInfo' => $token_info
+        );
+        //error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
+        $telegramService->sendMessage("Login exitoso EMAIL: {$usuarioLogueado->getEmail()}");
+
+        // Retornar el token
+        return new JsonResponse($token, 200);
     }
-
-    // Buscar al usuario en la base de datos
-    
-    $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
-    if (!$usuarioLogueado) {
-        return new JsonResponse(['error' => 'Invalid user'], 404);
-    }
-
-    // Preparar el token JWT como en el método original
-    $token_info = [
-        'userId' => $usuarioLogueado->getId(),
-        'email' => $usuarioLogueado->getEmail(),
-        'cantidadImagenesDisponibles' => $usuarioLogueado->getCantidadImagenesDisponibles(),
-    ];
-
-    $payload = [
-        'token_info' => $token_info,
-    ];
-
-    $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
-    
-    $token =  array(
-        'jwt_token' => $jwt,
-        'userInfo' => $token_info
-    );
-    //error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
-    $telegramService->sendMessage("Login exitoso EMAIL: {$usuarioLogueado->getEmail()}");
-
-    // Retornar el token
-    return new JsonResponse($token, 200);
-}
 
     
     #[Route('/perfil', name: 'perfil', methods: ['GET'])]
