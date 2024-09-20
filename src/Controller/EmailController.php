@@ -117,6 +117,25 @@ class EmailController extends AbstractController
         return new JsonResponse(['message' => 'Emails sent successfully']);
     }
 
+    #[Route('/sinenvios', name: 'sinenvios', methods: ['GET'])]
+    public function sinenvios(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse
+    {
+        // Obtener todas las inmobiliarias sin correos enviados
+        $inmobiliariasSinEmail = $inmobiliariaRepository->findAllSinEnvios();
+    
+        // Obtener la cantidad de inmobiliarias
+        $cantidadInmobiliarias = count($inmobiliariasSinEmail);
+    
+        // Extraer los IDs y unirlos en una cadena separada por comas
+        $listaIds = implode(',', array_column($inmobiliariasSinEmail, 'id'));
+    
+        // Retornar un JSON con las propiedades solicitadas
+        return new JsonResponse([
+            'cantidad_inmobiliarias_sin_email' => $cantidadInmobiliarias,
+            'lista_ids' => $listaIds
+        ]);
+    }
+
     private function processEmail($inmobiliaria, $subject, $template)
     {
         $emailEnviado = new EmailEnviado();

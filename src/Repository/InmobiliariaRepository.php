@@ -54,4 +54,14 @@ class InmobiliariaRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         }
+
+        public function findAllSinEnvios(): array
+        {
+            $sql = 'SELECT i.id 
+                    FROM inmobiliaria i 
+                    LEFT JOIN email_enviado ee ON i.id = ee.inmobiliaria_id 
+                    WHERE ee.inmobiliaria_id IS NULL';
+        
+            return $this->getEntityManager()->getConnection()->executeQuery($sql)->fetchAllAssociative();
+        }
 }
