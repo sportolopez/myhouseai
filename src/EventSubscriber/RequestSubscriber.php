@@ -24,9 +24,8 @@ class RequestSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
         $routeName = $request->attributes->get('_route'); // Obtiene el nombre de la ruta
-        $requestBody = json_decode($request->getContent(), true);
- 
-        error_log("Request: URL: {$request->getRequestUri()} / QueryParameters: {$request->getQueryString()} / Body {$requestBody} ");
+   
+        error_log("Request: URL: {$request->getRequestUri()} / QueryParameters: {$request->getQueryString()} / Body {$request->getContent()} ");
 
         // Guardar tiempo de inicio
         $request->attributes->set('request_start_time', microtime(true));
