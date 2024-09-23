@@ -31,7 +31,7 @@ class RequestSubscriber implements EventSubscriberInterface
         $request->attributes->set('request_start_time', microtime(true));
 
         // Proteger solo ciertas rutas
-        $protectedRoutes = ['generar','historial','process_payment','perfil','payment_controller','create_preference','send_emails'];
+        $protectedRoutes = ['generar','historial','process_payment','perfil','payment_controller','create_preference'];
         if (!in_array($routeName, $protectedRoutes)) {
             error_log("La request no esta protegida: " .  $routeName);
             return;

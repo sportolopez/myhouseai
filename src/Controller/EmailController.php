@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Service\EncryptionService;
 use App\Service\TelegramService;
+use Doctrine\DBAL\Driver\IBMDB2\Result;
 use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,20 +38,36 @@ class EmailController extends AbstractController
     }
 
     #[Route('/send-emails', name: 'send_emails', methods: ['GET'])]
-    public function sendEmails(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse
+    public function sendEmails(Request $request, InmobiliariaRepository $inmobiliariaRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         // Obtener los parámetros de la consulta
         $ids = $request->query->get('ids'); // Los IDs deben venir como una lista, por ejemplo: ?ids=1,2,3
         $asunto = $request->query->get('asunto');
         $template = $request->query->get('template');
-    
+        $limit = $request->query->get('limit', 30);
+
+        if($ids)
+            $idArray = array_map('intval', explode(',', $ids));
+
+        if(!$ids && $limit){
+            $connection = $entityManager->getConnection();
+            $sql = '
+                SELECT i.id 
+                FROM inmobiliaria i
+                LEFT JOIN email_enviado ee ON i.id = ee.inmobiliaria_id
+                WHERE ee.inmobiliaria_id IS NULL
+                LIMIT '. $limit;
+            
+            $stmt = $connection->prepare($sql);
+            $idArray = array_column($stmt->executeQuery()->fetchAll(), 'id');
+            // Convertir los IDs en un array
+            
+        }
+
         // Validar que todos los parámetros estén presentes
-        if (!$ids || !$asunto || !$template) {
+        if (!$idArray || !$asunto || !$template) {
             return new JsonResponse(['error' => 'Faltan parametros ids, asunto, template'], 400);
         }
-    
-        // Convertir los IDs en un array
-        $idArray = array_map('intval', explode(',', $ids));
     
         if (empty($idArray)) {
             return new JsonResponse(['error' => 'La lista de ids está vacía'], 400);
@@ -70,7 +87,7 @@ class EmailController extends AbstractController
     
         return new JsonResponse(['message' => 'Correos enviados exitosamente']);
     }
-    
+
 
 
     #[Route('/track-email/{id}', name: 'track_email', methods: ['GET'])]
