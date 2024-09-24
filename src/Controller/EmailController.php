@@ -210,6 +210,7 @@ class EmailController extends AbstractController
             $mail->send();
         } catch (\Exception $e) {
             echo 'Mailer Error: ' . $mail->ErrorInfo;
+            throw $e;
         }
     }
 }
