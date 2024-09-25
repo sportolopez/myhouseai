@@ -11,11 +11,16 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ApiClientService
 
 {
-    const URL_API = "https://api.virtualstagingai.app/";
-    //const URL_API = "https://7607b2e4-b983-4b42-9a22-052496954763.mock.pstmn.io/";
-    
+    private $urlApi;
     const URL_IMG = "https://myhouseai.com/api/consultar/";
     const API_KEY = "vsai-pk-4865cd6f-9460-412c-8200-5bf1c9e95843";
+
+
+    public function __construct()
+    {
+        $this->urlApi  = $_ENV['URL_API'];
+    }
+
 
     private function executeCurlRequest($url, $method, $postFields = null, $headers = [])
     {
@@ -89,7 +94,7 @@ class ApiClientService
             'style' => $imagen->getEstilo()
         ], JSON_UNESCAPED_SLASHES);
 
-        $responseObject = $this->executeCurlRequest(self::URL_API . 'v1/render/create', 'POST', $postFields);
+        $responseObject = $this->executeCurlRequest($this->urlApi . 'v1/render/create', 'POST', $postFields);
 
         if(!$responseObject->render_id)
             throw new Exception('No tiene render ID: ' . print_r($responseObject, true));
@@ -102,7 +107,7 @@ class ApiClientService
         $queryParams = [
             'render_id' => $imagen->getRenderId()
         ];
-        $url = self::URL_API . 'v1/render?' . http_build_query($queryParams);
+        $url = $this->urlApi . 'v1/render?' . http_build_query($queryParams);
 
         $responseObject = $this->executeCurlRequest($url, 'GET');
 
@@ -115,7 +120,7 @@ class ApiClientService
 
     public function getPing()
     {
-        $url = self::URL_API . 'v1/ping';
+        $url = $this->urlApi . 'v1/ping';
 
         // Ejecuta la solicitud cURL y obtiene la respuesta cruda
         $responseObject = $this->executeCurlRequest($url, 'GET');
@@ -136,7 +141,7 @@ class ApiClientService
             'switch_to_queued_immediately' => $switchToQueuedImmediately,
         ]);
 
-        $url = self::URL_API . 'v1/render/create-variation?render_id=' . urlencode($renderId);
+        $url = $this->urlApi . 'v1/render/create-variation?render_id=' . urlencode($renderId);
         $headers = ['Authorization: Api-Key ' .self::API_KEY];
 
         $responseObject = $this->executeCurlRequest($url, 'POST', $postFields, $headers);

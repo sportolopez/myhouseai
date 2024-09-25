@@ -7,19 +7,20 @@ class TelegramService
 {
     private const BOT_ID = "7293637587:AAF9cQYXsPlLl5ufJ8YgARydPbuGeTcLhyk";
     private string $apiUrl;
-    private const CHAT_ID = '-4539412661'; // Define el chatId como una constante
+    private $chatID;
     
 
     public function __construct()
     {
         $this->apiUrl = "https://api.telegram.org/bot". self::BOT_ID. "/sendMessage";
+        $this->chatID  = $_ENV['CHAT_ID'];
     }
 
     public function sendMessage(string $message): JsonResponse
     {
         // Datos a enviar
         $data = [
-            'chat_id' => self::CHAT_ID,
+            'chat_id' => $this->chatID,
             'text' => $message,
         ];
 
