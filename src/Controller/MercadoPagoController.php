@@ -6,6 +6,7 @@ use App\Entity\UsuarioCompras;
 use App\Repository\PlanesRepository;
 use App\Repository\UsuarioComprasRepository;
 use App\Repository\UsuarioRepository;
+use App\Service\EmailService;
 use App\Service\TelegramService;
 use DateTime;
 use Exception;
@@ -13,8 +14,6 @@ use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
-use MercadoPago\Resources\Invoice\Payment;
-use MercadoPago\Resources\PreferenceSearch;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,8 +22,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use MercadoPago\SDK;
-use MercadoPago\Preference;
 
 #[Route('/payment')]
 class MercadoPagoController extends AbstractController
@@ -61,11 +58,11 @@ class MercadoPagoController extends AbstractController
             error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
             $telegramService->sendMessage("🤑: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
             $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
-
             $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
             $this->entityManager->persist($usuarioCompra);
             $this->entityManager->persist($usuarioPagador);
             $this->entityManager->flush();
+
 
             return new RedirectResponse('https://myhouseai.com.ar/?status=approved');
         }catch (Exception $exception){
@@ -115,7 +112,7 @@ class MercadoPagoController extends AbstractController
 
     
     #[Route('/webhook', name: 'webhook', methods: ['POST'])]
-    public function webhook(Request $request, TelegramService $telegramService, UsuarioComprasRepository $usuarioComprasRepository): Response
+    public function webhook(Request $request, TelegramService $telegramService, EmailService $emailService): Response
     {
         // Obtén el contenido de la solicitud
         $data = json_decode($request->getContent(), true);
@@ -177,6 +174,13 @@ class MercadoPagoController extends AbstractController
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
                         $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
                         $telegramService->sendMessage("💰 Pago approved con ID: " . $paymentId);
+
+                        try{
+                            $emailService->emailCompra($usuarioCompra);
+                        }catch (Exception $e){
+                            $telegramService->sendMessage("ERROR: No se pudo mandar el mail de agradeimiento: " . $e->getMessage() );
+                        
+                        }
                         break;
                     case 'pending':
                         $usuarioCompra->setEstado(EstadoCompra::PENDING);
@@ -197,7 +201,7 @@ class MercadoPagoController extends AbstractController
 
             }catch(Exception $e){
                 $telegramService->sendMessage("No se pudieron obtener los detalles del pago con ID: " . $paymentId);
-                return new Response('Payment no encontrado', Response::HTTP_NOT_FOUND);
+                return new Response('Payment no encontrado: ' . $e->getMessage(), Response::HTTP_NOT_FOUND);
             }
             
             

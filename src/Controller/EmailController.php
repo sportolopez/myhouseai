@@ -1,9 +1,9 @@
 <?php
 namespace App\Controller;
 
+use App\Service\EmailService;
 use App\Service\EncryptionService;
 use App\Service\TelegramService;
-use Doctrine\DBAL\Driver\IBMDB2\Result;
 use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,19 +22,14 @@ class EmailController extends AbstractController
 {
     private $twig;
     private $em;
-    private $smtpHost = 'c1802222.ferozo.com';
-    private $smtpPort = 465;
-    private $smtpUser = 'ventas@myhouseai.com';
-    private $smtpPassword = '1@2z5NT0xY';
-    private $smtpFrom = 'martin@myhouseai.com.ar';
-    private $smtpFromName = 'Martin';
-    private EncryptionService $encryptionService;
+    private $emailService;
 
-    public function __construct(Environment $twig, EntityManagerInterface $em,EncryptionService $encryptionService)
+
+    public function __construct(Environment $twig, EntityManagerInterface $em, EmailService $emailService)
     {
         $this->twig = $twig;
         $this->em = $em;
-        $this->encryptionService = $encryptionService;
+        $this->emailService = $emailService;
     }
 
     #[Route('/send-emails', name: 'send_emails', methods: ['GET'])]
@@ -82,7 +77,7 @@ class EmailController extends AbstractController
     
         // Enviar correos electrónicos a las inmobiliarias
         foreach ($inmobiliarias as $inmobiliaria) {
-            $this->processEmail($inmobiliaria, $asunto, $template);
+            $this->emailService->processEmail($inmobiliaria, $asunto, $template);
         }
     
         return new JsonResponse(['message' => 'Correos enviados exitosamente']);
@@ -129,7 +124,7 @@ class EmailController extends AbstractController
             throw $this->createNotFoundException('No se encontró la inmobiliaria con id ' . $inmobiliaria_id);
         }
 
-        $this->processEmail($inmobiliarium, $template, $asunto . " " . $inmobiliarium->getDireccion());
+        $this->emailService->processEmail($inmobiliarium, $template, $asunto . " " . $inmobiliarium->getDireccion());
 
         return new JsonResponse(['message' => 'Emails sent successfully']);
     }
@@ -156,61 +151,4 @@ class EmailController extends AbstractController
 
   
 
-    private function processEmail($inmobiliaria, $subject, $template)
-    {
-        $emailEnviado = new EmailEnviado();
-        $emailEnviado->setInmobiliaria($inmobiliaria);
-        $emailEnviado->setEmailVersion($template);
-        $emailEnviado->setFecha(new \DateTime());
-        $emailEnviado->setVisto(0);
-        $emailEnviado->setVistoFecha(null);
-
-        $this->em->persist($emailEnviado);
-        $this->em->flush();
-
-        $pixelUrl = 'https://myhouseai.com/api/track-email/'.$emailEnviado->getId();
-
-        $htmlContent = $this->twig->render($template . '.html.twig', [
-            'ruta_imagen_original' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenOriginal.png',
-            'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenGenerada.png',
-            'pixel_url' => $pixelUrl
-        ]);
-        $domicilio = $inmobiliaria->getDireccion();
-        error_log(("Domicilio: $domicilio"));
-
-        $sessionId = $this->encryptionService->encrypt($inmobiliaria->getEmail());
-        $subject = str_replace('{domicilio}', $domicilio, $subject);
-        $htmlContent = str_replace('{session}', $sessionId, $htmlContent);
-        error_log(("Domicilio: $subject"));
-        $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
-    }
-
-    private function sendPHPMailerEmail($to, $subject, $htmlContent)
-    {
-        $mail = new PHPMailer(true);
-
-        try {
-            $mail->isSMTP();
-            $mail->Host = $this->smtpHost;
-            $mail->Port = $this->smtpPort;
-            $mail->SMTPAuth = true;
-            $mail->Username = $this->smtpUser;
-            $mail->Password = $this->smtpPassword;
-            $mail->SMTPSecure = 'ssl';
-            $mail->CharSet = 'UTF-8';
-
-            $mail->setFrom($this->smtpFrom, $this->smtpFromName);
-            $mail->addAddress($to);
-            //$mail->addAddress("sebaporto@gmail.com");
-            //$mail->addAddress("moreiragmartin@gmail.com");
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body = $htmlContent;
-
-            $mail->send();
-        } catch (\Exception $e) {
-            echo 'Mailer Error: ' . $mail->ErrorInfo;
-            throw $e;
-        }
-    }
 }
