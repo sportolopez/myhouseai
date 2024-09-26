@@ -60,7 +60,7 @@ class InmobiliariaRepository extends ServiceEntityRepository
             $sql = 'SELECT i.id 
                     FROM inmobiliaria i 
                     LEFT JOIN email_enviado ee ON i.id = ee.inmobiliaria_id 
-                    WHERE ee.inmobiliaria_id IS NULL';
+                    WHERE ee.inmobiliaria_id IS NULL ORDER BY id ASC';
 
             // Si se proporciona un dominio de email, agregamos el filtro
             if ($emailDomain) {
