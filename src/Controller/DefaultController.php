@@ -200,6 +200,9 @@ class DefaultController extends AbstractController
             $userEmail = $encryptionService->decrypt($sessionHash);
 
             $telegramService->sendMessage("El usuario {$userEmail} entro en generar free");
+        }else{
+            $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
+            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
         }
         
 
