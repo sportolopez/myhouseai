@@ -181,10 +181,7 @@ class DefaultController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['idgenerar'])) {
-            $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
-            return new JsonResponse(['error' => 'SE INTENTO GENERAR FREE sin idGnerarar'], Response::HTTP_FORBIDDEN);
-        }
+
 
         if (isset($data['generation_id'])) {
             $imagen = $imagenRepository->findOneById($data['generation_id']);
@@ -198,8 +195,11 @@ class DefaultController extends AbstractController
             return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' =>100]);
         }
 
+        if (!isset($data['idgenerar'])) {
+            $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
+            return new JsonResponse(['error' => 'SE INTENTO GENERAR FREE sin idGnerarar'], Response::HTTP_FORBIDDEN);
+        }
 
-        
         $sessionHash = $data['idgenerar'];
         // Desencriptar el hash usando el servicio de encriptación
         $userEmail = $encryptionService->decrypt($sessionHash);

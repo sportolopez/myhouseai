@@ -133,8 +133,9 @@ class EmailController extends AbstractController
     public function sinenvios(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse
     {
         $dominio_email = $request->query->get(key: 'dominio');
+        $notdominio = $request->query->get(key: 'notdominio');
         // Obtener todas las inmobiliarias sin correos enviados
-        $inmobiliariasSinEmail = $inmobiliariaRepository->findAllSinEnvios($dominio_email);
+        $inmobiliariasSinEmail = $inmobiliariaRepository->findAllSinEnvios($dominio_email, $notdominio);
     
         // Obtener la cantidad de inmobiliarias
         $cantidadInmobiliarias = count($inmobiliariasSinEmail);

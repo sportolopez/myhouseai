@@ -55,23 +55,31 @@ class InmobiliariaRepository extends ServiceEntityRepository
                 ->getResult();
         }
 
-        public function findAllSinEnvios(?string $emailDomain = null): array
+        public function findAllSinEnvios(?string $emailDomain = null,?string $notemailDomain = null): array
         {
             $sql = 'SELECT i.id 
                     FROM inmobiliaria i 
                     LEFT JOIN email_enviado ee ON i.id = ee.inmobiliaria_id 
-                    WHERE ee.inmobiliaria_id IS NULL ORDER BY id ASC';
+                    WHERE ee.inmobiliaria_id IS NULL ';
 
             // Si se proporciona un dominio de email, agregamos el filtro
             if ($emailDomain) {
                 $sql .= ' AND i.email LIKE :emailDomain';
             }
 
+            if ($notemailDomain) {
+                $sql .= ' AND i.email NOT LIKE :notemailDomain';
+            }
+
+            $sql .= ' ORDER BY id ASC';
             $query = $this->getEntityManager()->getConnection()->prepare($sql);
 
             // Si se proporciona el dominio, lo pasamos como parámetro
             if ($emailDomain) {
                 $query->bindValue('emailDomain', '%' . $emailDomain);
+            }
+            if ($notemailDomain) {
+                $query->bindValue('notemailDomain', '%' . $notemailDomain);
             }
             return $query->execute()->fetchAllAssociative();
         }
