@@ -16,7 +16,7 @@ class TelegramService
         $this->chatID  = $_ENV['CHAT_ID'];
     }
 
-    public function sendMessage(string $message): JsonResponse
+    public function sendMessage(string $message)
     {
         // Datos a enviar
         $data = [
@@ -39,9 +39,7 @@ class TelegramService
 
         // Verificar el resultado
         if ($result === FALSE) {
-            return new JsonResponse("Error al enviar el mensaje", 500);
-        } else {
-            return new JsonResponse("Mensaje enviado correctamente", 200);
-        }
+            error_log("Telegram service: Error al enviar mensaje: " . $message);
+        } 
     }
 }

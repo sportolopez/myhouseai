@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Variacion;
 use App\Repository\ImagenRepository;
+use App\Repository\InmobiliariaRepository;
 use App\Repository\PlanesRepository;
 use App\Repository\UsuarioRepository;
 use App\Repository\VariacionRepository;
@@ -162,7 +163,7 @@ class DefaultController extends AbstractController
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
     
-    //#[Route('/generar_free', name: 'generar_free', methods: ['POST'])]
+    #[Route('/generar_free', name: 'generar_free', methods: ['POST'])]
     public function generarFree(
         ManagerRegistry $doctrine,
         Request $request,
@@ -170,6 +171,7 @@ class DefaultController extends AbstractController
         ImagenRepository $imagenRepository,
         ApiClientService $apiClientService,
         EncryptionService $encryptionService,
+        InmobiliariaRepository $inmobiliariaRepository,
         TelegramService $telegramService
     ): JsonResponse {
         $entityManager = $doctrine->getManager();
@@ -177,33 +179,48 @@ class DefaultController extends AbstractController
         // Obtener la IP del cliente
         $clientIp = $request->getClientIp();
 
-                // Obtener o crear el usuario "Usuario Free"
-        $emailUsuarioFree = 'sebaporto@gmail.com';
-        $usuarioFree = $usuarioRepository->findOneBy(['email' => $emailUsuarioFree]);
-    
-        if (!$usuarioFree) {
-            // Crear el usuario "Usuario Free" si no existe
-            $usuarioFree = new Usuario();
-            $usuarioFree->setEmail($emailUsuarioFree);
-            $usuarioFree->setNombre('Usuario Free');
-            $usuarioFree->setCantidadImagenesDisponibles(0);  // No permitimos más imágenes para este usuario, es solo para tracking
-            $entityManager->persist($usuarioFree);
-            $entityManager->flush();
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['idgenerar'])) {
+            $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
+            return new JsonResponse(['error' => 'SE INTENTO GENERAR FREE sin idGnerarar'], Response::HTTP_FORBIDDEN);
+        }
+        $sessionHash = $data['idgenerar'];
+        // Desencriptar el hash usando el servicio de encriptación
+        $userEmail = $encryptionService->decrypt($sessionHash);
+
+        if (filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+            error_log ("La direccion de correo es valida." . $userEmail);
+        } else {
+            error_log("La direccion de correo no es valida." . $userEmail);
+        }
+
+        if (!$userEmail) {
+            $telegramService->sendMessage("No se pudo obtener el mail de idgenerar");
+            return new JsonResponse(['error' => 'No se obtuvo el email del idgenerar'], Response::HTTP_FORBIDDEN);
+        }
+
+        $inmo = $inmobiliariaRepository->findOneBy(['email' => $userEmail]);
+
+        if (!$inmo) {
+            $telegramService->sendMessage("Se intento generar free con una inmobiliaria que no existe");
+            return new JsonResponse(['error' => 'Se intento generar free con una inmobiliaria que no existe'], Response::HTTP_FORBIDDEN);
         }
         
-                // Generar variación
-        $data = json_decode($request->getContent(), true);
-        if (isset($data['idgenerar'])) {
-
-            $sessionHash = $data['idgenerar'];
-            // Desencriptar el hash usando el servicio de encriptación
-            $userEmail = $encryptionService->decrypt($sessionHash);
-
-            $telegramService->sendMessage("El usuario {$userEmail} entro en generar free con ip {$clientIp}");
-        }else{
-            $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
-            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
+        $usuario = $usuarioRepository->findOneBy(['email' => $userEmail]);
+    
+        if (!$usuario) {
+            // Crear el usuario "Usuario Free" si no existe
+            $usuario = new Usuario();
+            $usuario->setEmail($userEmail);
+            $usuario->setNombre($userEmail); // POdria buscar el nombre de la inmo
+            $usuario->setCantidadImagenesDisponibles(1);  // No permitimos más imágenes para este usuario, es solo para tracking
+            $entityManager->persist($usuario);
+            $entityManager->flush();
         }
+
+
+        $telegramService->sendMessage("El usuario {$userEmail} entro en generar free con ip {$clientIp}");
         
 
         if (isset($data['generation_id'])) {
@@ -217,16 +234,6 @@ class DefaultController extends AbstractController
     
             return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' =>100]);
         }
-
-        // Verificar si ya existe una imagen generada desde esta IP
-        $imagenExistente = $imagenRepository->findOneBy(['ip_remota' => $clientIp]);
-    
-        if ($imagenExistente) {
-            $telegramService->sendMessage("Se bloquea el usuario {$userEmail} ya tenia imagen con ip {$clientIp}");
-            return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
-        }
-    
-
 
         if (!isset($data['image'])) {
             return new JsonResponse(['error' => 'Se debe subir una imagen'], Response::HTTP_BAD_REQUEST);
@@ -244,6 +251,13 @@ class DefaultController extends AbstractController
             return new JsonResponse(['error' => 'Datos de imagen base64 inválidos'], Response::HTTP_BAD_REQUEST);
         }
     
+
+        if ($usuario->getCantidadImagenesDisponibles() < 1 && isset($data['image'])) {
+            $telegramService->sendMessage("El usuario  {$userEmail} se quedo sin imagenes ");
+            return new JsonResponse(['error' => 'Te quedaste sin imágenes'], Response::HTTP_FORBIDDEN);
+        }
+
+
         // Generar un UUID para el nombre de la imagen
         $uuid = Uuid::uuid4()->toString();
     
@@ -251,7 +265,7 @@ class DefaultController extends AbstractController
         $imagen = new Imagen();
         $imagen->setId($uuid);
         $imagen->setImgOrigen($imageData);
-        $imagen->setUsuario($usuarioFree);  // Asociar la imagen al "Usuario Free"
+        $imagen->setUsuario($usuario);  // Asociar la imagen al "Usuario Free"
         $imagen->setEstilo($data['style']);
         $imagen->setTipoHabitacion($data['roomType']);
         $imagen->setFecha(new DateTime());
@@ -274,8 +288,14 @@ class DefaultController extends AbstractController
         $entityManager->flush();
     
         // Notificación a Telegram
-        $telegramService->sendMessage("📷 Se ejecutó generar_free desde la IP: {$clientIp} para el usuario 'Usuario Free'");
+        $telegramService->sendMessage("📷 Se ejecutó generar_free desde la IP: {$clientIp} para el usuario {$userEmail}");
     
+
+        $usuario->setCantidadImagenesDisponibles($usuario->getCantidadImagenesDisponibles() - 1);
+        $entityManager->persist($usuario);
+        $entityManager->flush();
+
+        
         return new JsonResponse(['generation_id' => $uuid], JsonResponse::HTTP_OK);
     }
     
