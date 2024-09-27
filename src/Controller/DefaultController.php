@@ -185,6 +185,21 @@ class DefaultController extends AbstractController
             $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
             return new JsonResponse(['error' => 'SE INTENTO GENERAR FREE sin idGnerarar'], Response::HTTP_FORBIDDEN);
         }
+
+        if (isset($data['generation_id'])) {
+            $imagen = $imagenRepository->findOneById($data['generation_id']);
+    
+            if (!$imagen) {
+                return new JsonResponse(['error' => 'No se encontró una imagen con ese generation_id']);
+            }
+    
+            $apiClientService->crearVariacionParaRender($imagen->getRenderId(), $data['roomType'], $data['style']);
+    
+            return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' =>100]);
+        }
+
+
+        
         $sessionHash = $data['idgenerar'];
         // Desencriptar el hash usando el servicio de encriptación
         $userEmail = $encryptionService->decrypt($sessionHash);
@@ -223,17 +238,6 @@ class DefaultController extends AbstractController
         $telegramService->sendMessage("El usuario {$userEmail} entro en generar free con ip {$clientIp}");
         
 
-        if (isset($data['generation_id'])) {
-            $imagen = $imagenRepository->findOneById($data['generation_id']);
-    
-            if (!$imagen) {
-                return new JsonResponse(['error' => 'No se encontró una imagen con ese generation_id']);
-            }
-    
-            $apiClientService->crearVariacionParaRender($imagen->getRenderId(), $data['roomType'], $data['style']);
-    
-            return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' =>100]);
-        }
 
         if (!isset($data['image'])) {
             return new JsonResponse(['error' => 'Se debe subir una imagen'], Response::HTTP_BAD_REQUEST);
