@@ -162,7 +162,7 @@ class DefaultController extends AbstractController
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
     
-    #[Route('/generar_free', name: 'generar_free', methods: ['POST'])]
+    //#[Route('/generar_free', name: 'generar_free', methods: ['POST'])]
     public function generarFree(
         ManagerRegistry $doctrine,
         Request $request,
@@ -199,7 +199,7 @@ class DefaultController extends AbstractController
             // Desencriptar el hash usando el servicio de encriptación
             $userEmail = $encryptionService->decrypt($sessionHash);
 
-            $telegramService->sendMessage("El usuario {$userEmail} entro en generar free");
+            $telegramService->sendMessage("El usuario {$userEmail} entro en generar free con ip {$clientIp}");
         }else{
             $telegramService->sendMessage("SE INTENTO GENERAR FREE sin idGnerarar");
             return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
@@ -222,6 +222,7 @@ class DefaultController extends AbstractController
         $imagenExistente = $imagenRepository->findOneBy(['ip_remota' => $clientIp]);
     
         if ($imagenExistente) {
+            $telegramService->sendMessage("Se bloquea el usuario {$userEmail} ya tenia imagen con ip {$clientIp}");
             return new JsonResponse(['error' => 'Ya has generado una imagen con esta IP'], Response::HTTP_FORBIDDEN);
         }
     
