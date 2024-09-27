@@ -101,7 +101,7 @@ class DefaultController extends AbstractController
         $data = json_decode($request->getContent(), true);
     
         if ($usuario->getCantidadImagenesDisponibles() < 1 && isset($data['image'])) {
-            return new JsonResponse(['error' => 'Te quedaste sin imágenes'], Response::HTTP_FORBIDDEN);
+            return new JsonResponse(['error' => 'Te quedaste sin imagenes'], Response::HTTP_FORBIDDEN);
         }
     
         if (!isset($data['image']) && !isset($data['generation_id'])) {
@@ -258,7 +258,7 @@ class DefaultController extends AbstractController
 
         if ($usuario->getCantidadImagenesDisponibles() < 1 && isset($data['image'])) {
             $telegramService->sendMessage("El usuario  {$userEmail} se quedo sin imagenes ");
-            return new JsonResponse(['error' => 'Te quedaste sin imágenes'], Response::HTTP_FORBIDDEN);
+            return new JsonResponse(['error' => 'Te quedaste sin imagenes'], Response::HTTP_FORBIDDEN);
         }
 
 

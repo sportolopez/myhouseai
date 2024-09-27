@@ -88,8 +88,7 @@ class UsuarioController extends AbstractController{
     {
         $data = json_decode($request->getContent(), true);
         $sessionHash = $data['idgenerar'];
-        
-            
+          
         if (!$sessionHash) {
             return new JsonResponse(['error' => 'Session hash missing'], 400);
         }
@@ -99,8 +98,33 @@ class UsuarioController extends AbstractController{
 
         $telegramService->sendMessage("Click en el link del mail: {$userEmail}");
 
+                
+        $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
+        if (!$usuarioLogueado) {
+            return new JsonResponse(['error' => 'Invalid user'], 404);
+        }
+
+        // Preparar el token JWT como en el método original
+        $token_info = [
+            'userId' => $usuarioLogueado->getId(),
+            'email' => $usuarioLogueado->getEmail(),
+            'cantidadImagenesDisponibles' => $usuarioLogueado->getCantidadImagenesDisponibles(),
+        ];
+
+        $payload = [
+            'token_info' => $token_info,
+        ];
+
+        $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
+        
+        $token =  array(
+            'jwt_token' => $jwt,
+            'userInfo' => $token_info
+        );
+        //error_log(json_encode($token, JSON_UNESCAPED_SLASHES));
+        $telegramService->sendMessage("Login exitoso EMAIL: {$usuarioLogueado->getEmail()}");
         // Retornar el token
-        return new JsonResponse(200);
+        return new JsonResponse($token, 200);
     }
 
     #[Route('/login_mail', name: 'login_mail', methods: ['POST'])]
