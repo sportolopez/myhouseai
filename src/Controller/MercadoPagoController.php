@@ -161,7 +161,6 @@ class MercadoPagoController extends AbstractController
 
                 $usuarioPagador = $usuarioCompra->getUsuario();
                 error_log("mercadopago_success: Se confirma compra de {$usuarioPagador->getEmail()}. Cantidad: " . $usuarioCompra->getCantidad());
-                $telegramService->sendMessage("DEBUG: Se actualiza el pago {$idUsuarioCompra}, para el mail {$usuarioPagador->getEmail()}, estado: {$payment->status}, cantidad: " . $usuarioCompra->getCantidad());
                 
     
     
