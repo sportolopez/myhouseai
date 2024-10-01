@@ -121,6 +121,7 @@ class DefaultController extends AbstractController
             }
     
             $apiClientService->crearVariacionParaRender($imagen->getRenderId(), $data['roomType'], $data['style']);
+            $telegramService->sendMessage("📷 Se ejecutó generar variacion para el usuario {$usuario->getEmail()} render id {$imagen->getRenderId()}");
     
             return new JsonResponse(['generation_id' => $imagen->getId(), 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()]);
         }
@@ -158,7 +159,7 @@ class DefaultController extends AbstractController
         $entityManager->persist($usuario);
         $entityManager->flush();
     
-        $telegramService->sendMessage("📷 Se ejecuto generar: {$usuario->getEmail()}");
+        $telegramService->sendMessage("📷 Se ejecuto generar: {$usuario->getEmail()}  render id {$imagen->getRenderId()}");
            
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }

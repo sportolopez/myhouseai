@@ -91,7 +91,7 @@ class VariacionRepository extends ServiceEntityRepository
         $result = $query->getOneOrNullResult();
 
         if ($result === null) {
-            throw new \Exception("No se encontro la imagen $value");
+            throw new \Exception("No se encontro la variacion $value");
         }
 
         // Crear una instancia de Imagen y asignar manualmente los valores
