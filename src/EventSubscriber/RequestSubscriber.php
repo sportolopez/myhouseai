@@ -3,8 +3,10 @@
 namespace App\EventSubscriber;
 
 use App\Controller\UsuarioController;
+use App\Service\TelegramService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Firebase\JWT\JWT;
@@ -12,10 +14,19 @@ use Firebase\JWT\Key;
 
 class RequestSubscriber implements EventSubscriberInterface
 {
+
+    private TelegramService $telegramService;
+
+    public function __construct(TelegramService $telegramService)
+    {
+        $this->telegramService = $telegramService;
+    }
+    
     public static function getSubscribedEvents(): array
     {
         return [
             RequestEvent::class => 'onKernelRequest',
+            ResponseEvent::class => 'onKernelResponse', // Aquí añadimos el evento ResponseEvent
             TerminateEvent::class => 'onKernelTerminate',
         ];
     }
@@ -62,8 +73,33 @@ class RequestSubscriber implements EventSubscriberInterface
         }
     }
 
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        $response = $event->getResponse();
+        $request = $event->getRequest();
+        $statusCode = $response->getStatusCode();
 
-    public function onKernelTerminate(TerminateEvent $event)
+        // Loguear detalles de la respuesta
+        error_log(sprintf(
+            "Response para la ruta %s: Status: %d, Content: %s",
+            $request->attributes->get('_route'),
+            $response->getStatusCode(),
+            substr($response->getContent(), 0, 200) // Limitar el contenido para no llenar el log
+        ));
+
+            // Si el código de estado es diferente de 200, enviar el log a Telegram
+        if ($statusCode !== 200) {
+            $message = sprintf(
+                "⚠️ Error en la ruta %s: Status: %d, Content: %s",
+                $request->attributes->get('_route'),
+                $statusCode,
+                substr($response->getContent(), 0, 200)
+            );
+
+            $this->telegramService->sendMessage($message);
+        }
+    }
+    public function onKernelTerminate(TerminateEvent $event): void
     {
         $request = $event->getRequest();
         $startTime = $request->attributes->get('request_start_time');

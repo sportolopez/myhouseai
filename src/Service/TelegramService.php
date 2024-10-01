@@ -1,8 +1,6 @@
 <?php
 namespace App\Service;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
-
 class TelegramService
 {
     private const BOT_ID = "7293637587:AAF9cQYXsPlLl5ufJ8YgARydPbuGeTcLhyk";
