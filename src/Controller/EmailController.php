@@ -80,7 +80,7 @@ class EmailController extends AbstractController
             if (filter_var($inmobiliaria->getEmail(), FILTER_VALIDATE_EMAIL)) {
                 $this->emailService->processEmail($inmobiliaria, $asunto, $template);
             } else {
-                $telegramService->notificaLectura("⚠️: Email invalido {$inmobiliaria->getEmail()}");
+                $telegramService->sendMessage("⚠️ Email invalido {$inmobiliaria->getEmail()}");
 
             }
             
