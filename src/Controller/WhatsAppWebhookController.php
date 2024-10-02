@@ -16,8 +16,7 @@ class WhatsAppWebhookController extends AbstractController
         $this->telegramService = $tc;
     }
 
-    #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
-    
+    #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp_get', methods: ['GET'])]
     public function verifyWebhook(Request $request): JsonResponse
     {
         // Parámetros enviados por WhatsApp para la verificación
@@ -32,7 +31,8 @@ class WhatsAppWebhookController extends AbstractController
         }
 
         // Si el token no coincide, responde con un error
-        r
+        return new JsonResponse(['error' => 'Token de verificación inválido'], 403);
+    }
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
     public function receiveWhatsAppMessage(Request $request): JsonResponse
