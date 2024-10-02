@@ -43,7 +43,7 @@ class WhatsAppWebhookController extends AbstractController
     public function receiveWhatsAppMessage(Request $request): JsonResponse
     {
         $content = json_decode($request->getContent(), true);
-
+        $this->telegramService->sendMessage("DEBUG: WebHook WP recibido: " . $request->getContent());
         // Verifica si el payload contiene un mensaje
         if (isset($content['messages']) && count($content['messages']) > 0) {
             $messageData = $content['messages'][0];
