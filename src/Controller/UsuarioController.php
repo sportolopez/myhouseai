@@ -100,6 +100,16 @@ class UsuarioController extends AbstractController{
 
                 
         $usuarioLogueado = $usuarioRepository->findOneByEmail($userEmail);
+
+        if(!$usuarioLogueado){
+            $usuarioLogueado = new Usuario();
+            $usuarioLogueado->setEmail($userEmail);
+            $usuarioLogueado->setNombre($userEmail);
+            $usuarioLogueado->setCantidadImagenesDisponibles(1);
+            $entityManager = $doctrine->getManager();
+            $entityManager->persist($usuarioLogueado);
+            $entityManager->flush();
+        }
         if (!$usuarioLogueado) {
             return new JsonResponse(['error' => 'Invalid user'], 404);
         }
