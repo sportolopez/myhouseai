@@ -33,7 +33,7 @@ class EmailController extends AbstractController
     }
 
     #[Route('/send-emails', name: 'send_emails', methods: ['GET'])]
-    public function sendEmails(Request $request, InmobiliariaRepository $inmobiliariaRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function sendEmails(Request $request, InmobiliariaRepository $inmobiliariaRepository, EntityManagerInterface $entityManager,TelegramService $telegramService): JsonResponse
     {
         // Obtener los parámetros de la consulta
         $ids = $request->query->get('ids'); // Los IDs deben venir como una lista, por ejemplo: ?ids=1,2,3
@@ -77,7 +77,13 @@ class EmailController extends AbstractController
     
         // Enviar correos electrónicos a las inmobiliarias
         foreach ($inmobiliarias as $inmobiliaria) {
-            $this->emailService->processEmail($inmobiliaria, $asunto, $template);
+            if (filter_var($inmobiliaria->getEmail(), FILTER_VALIDATE_EMAIL)) {
+                $this->emailService->processEmail($inmobiliaria, $asunto, $template);
+            } else {
+                $telegramService->notificaLectura("⚠️: Email invalido {$inmobiliaria->getEmail()}");
+
+            }
+            
         }
     
         return new JsonResponse(['message' => 'Correos enviados exitosamente']);
@@ -105,7 +111,7 @@ class EmailController extends AbstractController
         $response->setContent(base64_decode(
             'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
         ));
-        
+
         $telegramService->notificaLectura("📧: Se confirma lectura de {$emailEnviado->getInmobiliaria()->getNombre()} {$emailEnviado->getInmobiliaria()->getEmail()}.");
 
         return $response;
