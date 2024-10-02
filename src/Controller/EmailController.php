@@ -105,8 +105,8 @@ class EmailController extends AbstractController
         $response->setContent(base64_decode(
             'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
         ));
-        $clientIp = $request->getClientIp();
-        $telegramService->sendMessage("📧: Se confirma lectura de {$emailEnviado->getInmobiliaria()->getNombre()} {$emailEnviado->getInmobiliaria()->getEmail()}.");
+        
+        $telegramService->notificaLectura("📧: Se confirma lectura de {$emailEnviado->getInmobiliaria()->getNombre()} {$emailEnviado->getInmobiliaria()->getEmail()}.");
 
         return $response;
     }
