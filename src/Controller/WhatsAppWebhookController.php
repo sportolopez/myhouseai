@@ -4,6 +4,7 @@ use App\Service\TelegramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class WhatsAppWebhookController extends AbstractController
@@ -17,21 +18,25 @@ class WhatsAppWebhookController extends AbstractController
     }
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp_get', methods: ['GET'])]
-    public function verifyWebhook(Request $request): JsonResponse
+    public function verifyWebhook(Request $request): Response
     {
-        // Parámetros enviados por WhatsApp para la verificación
-        $hubMode = $request->query->get('hub.mode');
-        $hubChallenge = $request->query->get('hub.challenge');
-        $hubVerifyToken = $request->query->get('hub.verify_token');
+        $verifyToken = 'mitocken';
 
-        // Verifica el token de verificación
-        if ($hubVerifyToken === 'EAAPDdEmdFW0BO3EMbEVFoQAJZC10S82UZBYBFOX9EF9Eb9MLWmHXqfDy1tgPPtFgmU6CDQHLLsODizqSlP6uFI17YJMlbQyBX98UYpt4k7oMlutzZCYzJ2KXtkcXuHXxYisVhVFjkse6QWRZCV4DL7aQS5gYpRB680o3ZB3tZAzuMMjSudZAoCRAYWsrNdTv6E1') {
-            // Responde con el desafío para confirmar la verificación
-            return new JsonResponse(['challenge' => $hubChallenge]);
+        $mode = $request->query->get('hub_mode');
+        $token = $request->query->get('hub_verify_token');
+        $challenge = $request->query->get('hub_challenge');
+
+        if ($mode && $token) {
+            if ($mode === 'subscribe' && $token === $verifyToken) {
+                // Verificación exitosa
+                return new Response($challenge, 200);
+            } else {
+                // Verificación fallida
+                return new Response('Invalid token', 403);
+            }
         }
 
-        // Si el token no coincide, responde con un error
-        return new JsonResponse(['error' => 'Token de verificación inválido'], 403);
+        return new Response('Bad request mode:'. $mode, 400);
     }
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
