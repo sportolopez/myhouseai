@@ -25,7 +25,7 @@ class WhatsAppWebhookController extends AbstractController
         $hubVerifyToken = $request->query->get('hub.verify_token');
 
         // Verifica el token de verificación
-        if ($hubVerifyToken === 'YOUR_VERIFY_TOKEN') {
+        if ($hubVerifyToken === 'EAAPDdEmdFW0BO3EMbEVFoQAJZC10S82UZBYBFOX9EF9Eb9MLWmHXqfDy1tgPPtFgmU6CDQHLLsODizqSlP6uFI17YJMlbQyBX98UYpt4k7oMlutzZCYzJ2KXtkcXuHXxYisVhVFjkse6QWRZCV4DL7aQS5gYpRB680o3ZB3tZAzuMMjSudZAoCRAYWsrNdTv6E1') {
             // Responde con el desafío para confirmar la verificación
             return new JsonResponse(['challenge' => $hubChallenge]);
         }
