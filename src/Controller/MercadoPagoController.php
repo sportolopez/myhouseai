@@ -169,8 +169,7 @@ class MercadoPagoController extends AbstractController
                 switch ($payment->status) {
                     case 'approved':
                         if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
-                            $telegramService->sendMessage('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
-                            $telegramService->sendMessage('La compra se libera el money_release_date: Esta compra ya fue utilizada id: ' . $payment->money_release_date);
+                            $telegramService->sendMessage(message: 'Compra ya efectuada, update de status ' . $idUsuarioCompra);
                             break;
                         }
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
