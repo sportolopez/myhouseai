@@ -141,6 +141,8 @@ class MercadoPagoController extends AbstractController
                     'date_created' => $payment->date_created,
                     'date_approved' => $payment->date_approved,
                     'payment_method_id' => $payment->payment_method_id,
+                    'money_release_status' => $payment->money_release_status,
+                    'money_release_date' => $payment->money_release_date,
                     // Agregar más propiedades según sea necesario
                 ];
 
@@ -168,7 +170,8 @@ class MercadoPagoController extends AbstractController
                     case 'approved':
                         if ($usuarioCompra->getEstado() === EstadoCompra::SUCCESS ) {
                             $telegramService->sendMessage('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
-                            throw new NotFoundHttpException('Esta compra ya fue utilizada id: ' . $idUsuarioCompra);
+                            $telegramService->sendMessage('La compra se libera el money_release_date: Esta compra ya fue utilizada id: ' . $payment->money_release_date);
+                            break;
                         }
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
                         $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
@@ -178,7 +181,6 @@ class MercadoPagoController extends AbstractController
                             $emailService->emailCompra($usuarioCompra);
                         }catch (Exception $e){
                             $telegramService->sendMessage("ERROR: No se pudo mandar el mail de agradeimiento: " . $e->getMessage() );
-                        
                         }
                         break;
                     case 'pending':
