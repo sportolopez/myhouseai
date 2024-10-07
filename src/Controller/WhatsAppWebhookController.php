@@ -68,23 +68,23 @@ class WhatsAppWebhookController extends AbstractController
             // Realiza diferentes acciones según el estado del mensaje
             switch ($statusText) {
                 case 'sent':
-                    $this->telegramService->sendMessage("{$emojis['sent']} Mensaje enviado a $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['sent']} Mensaje enviado a $recipientId con ID $messageId.");
                     break;
 
                 case 'delivered':
-                    $this->telegramService->sendMessage("{$emojis['delivered']} Mensaje entregado a $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['delivered']} Mensaje entregado a $recipientId con ID $messageId.");
                     break;
 
                 case 'read':
-                    $this->telegramService->sendMessage("{$emojis['read']} Mensaje leído por $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['read']} Mensaje leído por $recipientId con ID $messageId.");
                     break;
 
                 case 'failed':
-                    $this->telegramService->sendMessage("{$emojis['failed']} Error en el envío del mensaje a $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['failed']} Error en el envío del mensaje a $recipientId con ID $messageId.");
                     break;
 
                 default:
-                    $this->telegramService->sendMessage("{$emojis['unknown']} Estado del mensaje desconocido: $statusText.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['unknown']} Estado del mensaje desconocido: $statusText.");
                     break;
             }
 
