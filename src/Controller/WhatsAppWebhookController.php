@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 use App\Service\TelegramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,34 +43,55 @@ class WhatsAppWebhookController extends AbstractController
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
     public function receiveWhatsAppMessage(Request $request): JsonResponse
     {
+        // Obtén el contenido JSON del webhook
         $content = json_decode($request->getContent(), true);
-        $this->telegramService->notificaCionWhatsapp("DEBUG: WebHook WP recibido: " . $request->getContent());
-    
-        // Verificar si es un mensaje nuevo o enviado
-        if (isset($content['messages']) && count($content['messages']) > 0) {
-            foreach ($content['messages'] as $messageData) {
-                $messageText = $messageData['text']['body'] ?? '';
-                $from = $messageData['from'] ?? '';
-    
-                // Detectar si el mensaje fue enviado por ti
-                if ($messageData['type'] === 'sent') {
-                    $this->telegramService->notificaCionWhatsapp("📤 Mensaje enviado por ti a {$from}: {$messageText}");
-                } else {
-                    // Enviar mensaje a Telegram cuando es recibido
-                    $this->telegramService->notificaCionWhatsapp("💬 Nuevo mensaje de WhatsApp de {$from}: {$messageText}");
-                }
+
+        // Verifica si se recibió un objeto con el campo esperado
+        if (isset($content['entry'][0]['changes'][0]['value']['statuses'][0])) {
+            $status = $content['entry'][0]['changes'][0]['value']['statuses'][0];
+
+            // Extrae los datos importantes
+            $messageId = $status['id'] ?? 'N/A';
+            $statusText = $status['status'] ?? 'N/A';
+            $timestamp = $status['timestamp'] ?? 'N/A';
+            $recipientId = $status['recipient_id'] ?? 'N/A';
+
+            // Define emojis para cada acción
+            $emojis = [
+                'sent' => '📤',     // Ícono de mensaje enviado
+                'delivered' => '✅', // Ícono de mensaje entregado
+                'read' => '👀',      // Ícono de mensaje leído
+                'failed' => '❌',    // Ícono de error en el envío
+                'unknown' => '❓'    // Ícono de estado desconocido
+            ];
+
+            // Realiza diferentes acciones según el estado del mensaje
+            switch ($statusText) {
+                case 'sent':
+                    $this->telegramService->sendMessage("{$emojis['sent']} Mensaje enviado a $recipientId con ID $messageId.");
+                    break;
+
+                case 'delivered':
+                    $this->telegramService->sendMessage("{$emojis['delivered']} Mensaje entregado a $recipientId con ID $messageId.");
+                    break;
+
+                case 'read':
+                    $this->telegramService->sendMessage("{$emojis['read']} Mensaje leído por $recipientId con ID $messageId.");
+                    break;
+
+                case 'failed':
+                    $this->telegramService->sendMessage("{$emojis['failed']} Error en el envío del mensaje a $recipientId con ID $messageId.");
+                    break;
+
+                default:
+                    $this->telegramService->sendMessage("{$emojis['unknown']} Estado del mensaje desconocido: $statusText.");
+                    break;
             }
+
+            return new JsonResponse(['message' => 'Webhook procesado correctamente'], 200);
+        } else {
+            // Loggea un error si no se recibió el contenido esperado
+            return new JsonResponse(['error' => 'Estructura inválida'], 400);
         }
-    
-        // Verificar si el mensaje fue leído
-        if (isset($content['statuses']) && count($content['statuses']) > 0) {
-            foreach ($content['statuses'] as $statusData) {
-                if ($statusData['status'] === 'read') {
-                    $this->telegramService->notificaCionWhatsapp("👁️ Mensaje leído por {$statusData['recipient_id']}");
-                }
-            }
-        }
-    
-        return new JsonResponse(['status' => 'ok']);
     }
 }
