@@ -45,7 +45,7 @@ class WhatsAppWebhookController extends AbstractController
     {
         // Obtén el contenido JSON del webhook
         $content = json_decode($request->getContent(), true);
-        $this->telegramService->notificaCionWhatsapp("DEBUG: " . $request->getContent());
+
     
         // Verifica si el contenido tiene un mensaje o un estado de mensaje
         if ($this->isValidMessage($content)) {
@@ -55,7 +55,7 @@ class WhatsAppWebhookController extends AbstractController
             $this->processMessageStatus($content);
             return new JsonResponse(['message' => 'Estado del mensaje procesado correctamente'], 200);
         }
-    
+        $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
         // Loggea un error si no se recibió el contenido esperado
         return new JsonResponse(['error' => 'Estructura inválida'], 400);
     }
