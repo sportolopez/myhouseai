@@ -27,8 +27,8 @@ class TelegramWebhookController extends AbstractController
     #[Route(path: '/webhook/telegram', name: 'webhook_telegram', methods: ['POST'])]
     public function receiveTelegramResponse(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
-        $content = json_decode($request->getContent(), true);
-    
+        $content = json_decode($request->getContent(), associative: true);
+        $this->telegramService->notificaCionWhatsapp("DEBUG: " . $request->getContent());
         // Verifica si es una respuesta a un mensaje previo
         if (isset($content['message']['reply_to_message'])) {
             $responseText = $content['message']['text'] ?? '';
