@@ -81,13 +81,13 @@ class WhatsAppService
             if ($statusCode === 200) {
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
-                $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp:' . $decodedContent);
+                $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp:' . $content);
                 return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], 200);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
             error_log('Error en la solicitud a WhatsApp API' . $decodedContent);
-            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $decodedContent);
+            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $content);
             return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 200);
         }
     }
