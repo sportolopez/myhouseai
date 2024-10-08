@@ -48,6 +48,6 @@ class TelegramWebhookController extends AbstractController
             }
         }
         $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
-        return new JsonResponse(['error' => 'Estructura de mensaje inválida o no es una respuesta'], 400);
+        return new JsonResponse(['error' => 'Estructura de mensaje inválida o no es una respuesta'], 200);
     }
 }
