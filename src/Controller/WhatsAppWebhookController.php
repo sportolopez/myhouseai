@@ -45,7 +45,7 @@ class WhatsAppWebhookController extends AbstractController
     {
         // Obtén el contenido JSON del webhook
         $content = json_decode($request->getContent(), true);
-
+        $this->telegramService->notificaCionWhatsapp("DEBUG: $content.");
         // Verifica si se recibió un objeto con el campo esperado
         if (isset($content['entry'][0]['changes'][0]['value']['statuses'][0])) {
             $status = $content['entry'][0]['changes'][0]['value']['statuses'][0];
@@ -67,20 +67,16 @@ class WhatsAppWebhookController extends AbstractController
 
             // Realiza diferentes acciones según el estado del mensaje
             switch ($statusText) {
-                case 'sent':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['sent']} Mensaje enviado a $recipientId con ID $messageId.");
-                    break;
-
                 case 'delivered':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['delivered']} Mensaje entregado a $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['delivered']} Mensaje entregado a $recipientId.");
                     break;
 
                 case 'read':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['read']} Mensaje leído por $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['read']} Mensaje leído por $recipientId.");
                     break;
 
                 case 'failed':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['failed']} Error en el envío del mensaje a $recipientId con ID $messageId.");
+                    $this->telegramService->notificaCionWhatsapp("{$emojis['failed']} Error en el envío del mensaje a $recipientId.");
                     break;
 
                 default:
