@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Service\TelegramService;
+use App\Service\WhatsAppService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +25,7 @@ class TelegramWebhookController extends AbstractController
         return new JsonResponse(['msj' => 'Funciona'], 200);
     }
     #[Route(path: '/webhook/telegram', name: 'webhook_telegram', methods: ['POST'])]
-    public function receiveTelegramResponse(Request $request): JsonResponse
+    public function receiveTelegramResponse(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
         $content = json_decode($request->getContent(), true);
     
@@ -40,7 +41,7 @@ class TelegramWebhookController extends AbstractController
     
             if ($whatsappNumber) {
                 // Enviar el mensaje de respuesta a través de WhatsApp
-                
+                $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
                 $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje {$responseText} ");
                 return new JsonResponse(['message' => 'Respuesta enviada al cliente en WhatsApp'], 200);
             } else {
