@@ -20,7 +20,7 @@ class TelegramWebhookController extends AbstractController
     }
     #[Route(path: '/webhook/telegram', name: 'webhook_telegram_GET', methods: ['GET'])]
     public function telegramGet(Request $request): JsonResponse
-    {
+    { 
         return new JsonResponse(['msj' => 'Funciona'], 200);
     }
     #[Route(path: '/webhook/telegram', name: 'webhook_telegram', methods: ['POST'])]
