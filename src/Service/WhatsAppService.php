@@ -32,7 +32,9 @@ class WhatsAppService
     {
         // URL de la API de WhatsApp con la versión parametrizada
         $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneNumberId}/messages";
-
+        if (preg_match('/^5491162198358|5491157634406$/', $phoneNumber)) {
+            $phoneNumber = substr($phoneNumber, 0, 2) . substr($phoneNumber, 3);
+        }
         // Cuerpo de la solicitud
         $body = [
             'messaging_product' => 'whatsapp',
