@@ -10,9 +10,11 @@ class WhatsAppService
     private $apiVersion;
     private $accessToken;
     private $phoneNumberId;
+    private $telegramService;
 
-    public function __construct()
+    public function __construct(TelegramService $telegramService)
     {
+        $this->telegramService = $telegramService;
         $this->apiVersion =  $_ENV['API_VERSION'];
         $this->accessToken =  $_ENV['WP_ACCESS_TOKEN'];
         $this->phoneNumberId = $_ENV['ID_PHONE_NUMB'];
@@ -25,7 +27,7 @@ class WhatsAppService
      * @param string $messageText Texto del mensaje a enviar.
      * @return JsonResponse
      */
-    public function sendWhatsAppMessage(string $phoneNumber, string $messageText, TelegramService $telegramService): JsonResponse
+    public function sendWhatsAppMessage(string $phoneNumber, string $messageText): JsonResponse
     {
         // URL de la API de WhatsApp con la versión parametrizada
         $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneNumberId}/messages";
@@ -62,15 +64,15 @@ class WhatsAppService
 
             // Verifica si la respuesta fue exitosa
             if ($statusCode === 200) {
-                $telegramService->sendMessage('Mensaje enviado correctamente a WhatsApp');
+                $this->telegramService->sendMessage('Mensaje enviado correctamente a WhatsApp');
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
-                $telegramService->sendMessage('Error enviando mensaje a WhatsApp');
+                $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp');
                 return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], $statusCode);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
-            $telegramService->sendMessage('Error enviando mensaje a WhatsApp' . $e->getMessage());
+            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp' . $e->getMessage());
             return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 500);
         }
     }
