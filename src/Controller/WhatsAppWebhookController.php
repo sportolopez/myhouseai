@@ -57,7 +57,7 @@ class WhatsAppWebhookController extends AbstractController
         }
         $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
         // Loggea un error si no se recibió el contenido esperado
-        return new JsonResponse(['error' => 'Estructura inválida'], 400);
+        return new JsonResponse(['error' => 'Estructura inválida'], 200);
     }
     
     // Verifica si el contenido contiene un mensaje válido
