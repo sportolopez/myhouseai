@@ -25,7 +25,7 @@ class WhatsAppService
      * @param string $messageText Texto del mensaje a enviar.
      * @return JsonResponse
      */
-    public function sendWhatsAppMessage(string $phoneNumber, string $messageText): JsonResponse
+    public function sendWhatsAppMessage(string $phoneNumber, string $messageText, TelegramService $telegramService): JsonResponse
     {
         // URL de la API de WhatsApp con la versión parametrizada
         $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneNumberId}/messages";
@@ -62,12 +62,15 @@ class WhatsAppService
 
             // Verifica si la respuesta fue exitosa
             if ($statusCode === 200) {
+                $telegramService->sendMessage('Mensaje enviado correctamente a WhatsApp');
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
+                $telegramService->sendMessage('Error enviando mensaje a WhatsApp');
                 return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], $statusCode);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
+            $telegramService->sendMessage('Error enviando mensaje a WhatsApp' . $e->getMessage());
             return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 500);
         }
     }
