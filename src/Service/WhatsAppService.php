@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Psr\Log\LoggerInterface;  // Importa el Logger
 
 class WhatsAppService
 {
@@ -11,12 +12,12 @@ class WhatsAppService
     private $accessToken;
     private $phoneNumberId;
     private $telegramService;
-
+    
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = $telegramService;
-        $this->apiVersion =  $_ENV['API_VERSION'];
-        $this->accessToken =  $_ENV['WP_ACCESS_TOKEN'];
+        $this->apiVersion = $_ENV['API_VERSION'];
+        $this->accessToken = $_ENV['WP_ACCESS_TOKEN'];
         $this->phoneNumberId = $_ENV['ID_PHONE_NUMB'];
     }
 
@@ -48,6 +49,13 @@ class WhatsAppService
             'Content-Type' => 'application/json',
         ];
 
+        // Loguear headers y body antes de hacer la solicitud
+        error_log('Enviando solicitud a WhatsApp API' . json_encode([
+            'url' => $url,
+            'headers' => $headers,
+            'body' => $body
+        ]));
+
         // Crea un cliente HTTP
         $client = HttpClient::create();
 
@@ -60,19 +68,26 @@ class WhatsAppService
 
             // Obtener el contenido de la respuesta
             $statusCode = $response->getStatusCode();
-            $content = $response->toArray();
+            $content = $response->getContent(false); // Evita que se lance la excepción
+            $decodedContent = json_decode($content, true); // Decodificar JSON de la respuesta
+
+            // Loguear la respuesta
+            error_log('Respuesta de WhatsApp API: ' . json_encode([
+                'status_code' => $statusCode,
+                'response' => $decodedContent
+            ]));
 
             // Verifica si la respuesta fue exitosa
             if ($statusCode === 200) {
-                $this->telegramService->sendMessage('Mensaje enviado correctamente a WhatsApp');
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
-                $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp');
+                $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp:' . $decodedContent);
                 return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], $statusCode);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
-            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp' . $e->getMessage());
+            error_log('Error en la solicitud a WhatsApp API' . $e->getMessage());
+            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $e->getMessage());
             return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 500);
         }
     }

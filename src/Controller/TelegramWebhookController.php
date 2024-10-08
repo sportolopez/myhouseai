@@ -28,7 +28,6 @@ class TelegramWebhookController extends AbstractController
     public function receiveTelegramResponse(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
         $content = json_decode($request->getContent(), associative: true);
-        $this->telegramService->notificaCionWhatsapp("DEBUG: " . $request->getContent());
         // Verifica si es una respuesta a un mensaje previo
         if (isset($content['message']['reply_to_message'])) {
             $responseText = $content['message']['text'] ?? '';
@@ -41,11 +40,10 @@ class TelegramWebhookController extends AbstractController
     
             if ($whatsappNumber) {
                 // Enviar el mensaje de respuesta a través de WhatsApp
-                $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
+                
                 $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje {$responseText} ");
-                return new JsonResponse(['message' => 'Respuesta enviada al cliente en WhatsApp'], 200);
+                return $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
             } else {
-                $this->telegramService->notificaCionWhatsapp("DEBUG: No se pudo mandar  a {$whatsappNumber} el mensaje {$responseText} ");
                 return new JsonResponse(['error' => 'No se pudo extraer el número de teléfono del mensaje original'], status: 200);
             }
         }
