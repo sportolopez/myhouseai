@@ -45,49 +45,81 @@ class WhatsAppWebhookController extends AbstractController
     {
         // Obtén el contenido JSON del webhook
         $content = json_decode($request->getContent(), true);
-        $this->telegramService->notificaCionWhatsapp("DEBUG: ". $request->getContent());
-        // Verifica si se recibió un objeto con el campo esperado
-        if (isset($content['entry'][0]['changes'][0]['value']['statuses'][0])) {
-            $status = $content['entry'][0]['changes'][0]['value']['statuses'][0];
-
-            // Extrae los datos importantes
-            $messageId = $status['id'] ?? 'N/A';
-            $statusText = $status['status'] ?? 'N/A';
-            $timestamp = $status['timestamp'] ?? 'N/A';
-            $recipientId = $status['recipient_id'] ?? 'N/A';
-
-            // Define emojis para cada acción
-            $emojis = [
-                'sent' => '📤',     // Ícono de mensaje enviado
-                'delivered' => '✅', // Ícono de mensaje entregado
-                'read' => '👀',      // Ícono de mensaje leído
-                'failed' => '❌',    // Ícono de error en el envío
-                'unknown' => '❓'    // Ícono de estado desconocido
-            ];
-
-            // Realiza diferentes acciones según el estado del mensaje
-            switch ($statusText) {
-                case 'delivered':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['delivered']} Mensaje entregado a $recipientId.");
-                    break;
-
-                case 'read':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['read']} Mensaje leído por $recipientId.");
-                    break;
-
-                case 'failed':
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['failed']} Error en el envío del mensaje a $recipientId.");
-                    break;
-
-                default:
-                    $this->telegramService->notificaCionWhatsapp("{$emojis['unknown']} Estado del mensaje desconocido: $statusText.");
-                    break;
-            }
-
-            return new JsonResponse(['message' => 'Webhook procesado correctamente'], 200);
-        } else {
-            // Loggea un error si no se recibió el contenido esperado
-            return new JsonResponse(['error' => 'Estructura inválida'], 400);
+        $this->telegramService->notificaCionWhatsapp("DEBUG: " . $request->getContent());
+    
+        // Verifica si el contenido tiene un mensaje o un estado de mensaje
+        if ($this->isValidMessage($content)) {
+            $this->processIncomingMessage($content);
+            return new JsonResponse(['message' => 'Mensaje recibido y procesado correctamente'], 200);
+        } elseif ($this->isValidStatus($content)) {
+            $this->processMessageStatus($content);
+            return new JsonResponse(['message' => 'Estado del mensaje procesado correctamente'], 200);
         }
+    
+        // Loggea un error si no se recibió el contenido esperado
+        return new JsonResponse(['error' => 'Estructura inválida'], 400);
+    }
+    
+    // Verifica si el contenido contiene un mensaje válido
+    private function isValidMessage(array $content): bool
+    {
+        return isset($content['entry'][0]['changes'][0]['value']['messages'][0]);
+    }
+    
+    // Verifica si el contenido contiene un estado de mensaje válido
+    private function isValidStatus(array $content): bool
+    {
+        return isset($content['entry'][0]['changes'][0]['value']['statuses'][0]);
+    }
+    
+    // Procesa el mensaje entrante y notifica a Telegram
+    private function processIncomingMessage(array $content): void
+    {
+        $message = $content['entry'][0]['changes'][0]['value']['messages'][0];
+        $contact = $content['entry'][0]['changes'][0]['value']['contacts'][0];
+    
+        $from = $message['from'] ?? 'N/A';
+        $text = $message['text']['body'] ?? 'N/A';
+        $contactName = $contact['profile']['name'] ?? 'N/A';
+        $contactNumber = $contact['wa_id'] ?? 'N/A';
+    
+        // Notifica el mensaje recibido por Telegram
+        $this->notifyTelegram("📩 Nuevo mensaje de $contactName ($contactNumber): \"$text\"");
+    }
+    
+    // Procesa el estado de mensaje y notifica a Telegram
+    private function processMessageStatus(array $content): void
+    {
+        $status = $content['entry'][0]['changes'][0]['value']['statuses'][0];
+        $statusText = $status['status'] ?? 'N/A';
+        $recipientId = $status['recipient_id'] ?? 'N/A';
+    
+        // Define emojis para cada acción
+        $emojis = [
+            'sent' => '📤',
+            'delivered' => '✅',
+            'read' => '👀',
+            'failed' => '❌',
+            'unknown' => '❓'
+        ];
+    
+        // Realiza diferentes acciones según el estado del mensaje
+        $message = match ($statusText) {
+            'sent' => null, // No se envía notificación para "sent"
+            'delivered' => "{$emojis['delivered']} Mensaje entregado a $recipientId.",
+            'read' => "{$emojis['read']} Mensaje leído por $recipientId.",
+            'failed' => "{$emojis['failed']} Error en el envío del mensaje a $recipientId.",
+            default => "{$emojis['unknown']} Estado del mensaje desconocido: $statusText.",
+        };
+    
+        if ($message) {
+            $this->notifyTelegram($message);
+        }
+    }
+    
+    // Notifica a Telegram
+    private function notifyTelegram(string $message): void
+    {
+        $this->telegramService->notificaCionWhatsapp($message);
     }
 }
