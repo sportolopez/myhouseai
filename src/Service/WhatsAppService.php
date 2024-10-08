@@ -82,13 +82,13 @@ class WhatsAppService
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
                 $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp:' . $decodedContent);
-                return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], $statusCode);
+                return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], 200);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
-            error_log('Error en la solicitud a WhatsApp API' . $e->getMessage());
-            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $e->getMessage());
-            return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 500);
+            error_log('Error en la solicitud a WhatsApp API' . $decodedContent);
+            $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $decodedContent);
+            return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 200);
         }
     }
 }
