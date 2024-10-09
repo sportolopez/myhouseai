@@ -104,7 +104,7 @@ class WhatsAppWebhookController extends AbstractController
             try {
                 // Intentar enviar el mensaje
                 $this->telegramService->sendMessage("Se intenta enviar a ". $contact['telefono']);
-                $this->whatsAppService->sendWhatsAppMessage($contact['telefono'], "Mensaje para " . $contact['nombre']);
+                $this->whatsAppService->sendWhatsAppTemplate($contact['telefono']);
                 
                 // Actualizar la columna 'enviado' sumando 1
                 $this->conn->executeUpdate(
