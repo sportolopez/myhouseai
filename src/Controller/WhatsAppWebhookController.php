@@ -23,7 +23,7 @@ class WhatsAppWebhookController extends AbstractController
         $this->conn = $conn;
         $this->whatsAppService = $whatsAppService;
     }
-
+/*
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp_get', methods: ['GET'])]
     public function verifyWebhook(Request $request): Response
@@ -45,7 +45,7 @@ class WhatsAppWebhookController extends AbstractController
         }
 
         return new Response('Bad request mode:'. $mode, 400);
-    }
+    }*/
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
     public function receiveWhatsAppMessage(Request $request): JsonResponse
