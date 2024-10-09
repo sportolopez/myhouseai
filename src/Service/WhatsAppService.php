@@ -36,10 +36,7 @@ class WhatsAppService
             'Content-Type' => 'application/json',
         ];
 
-        // Quitar "9" si el número coincide con los patrones definidos
-        if ($this->shouldRemoveNine($phoneNumber)) {
-            $phoneNumber = $this->removeNineFromPhoneNumber($phoneNumber);
-        }
+
 
         // Loguear la solicitud
         error_log('Enviando solicitud a WhatsApp API' . json_encode([
@@ -89,6 +86,12 @@ class WhatsAppService
      */
     public function sendWhatsAppMessage(string $phoneNumber, string $message): JsonResponse
     {
+
+        // Quitar "9" si el número coincide con los patrones definidos
+        if ($this->shouldRemoveNine($phoneNumber)) {
+            $phoneNumber = $this->removeNineFromPhoneNumber($phoneNumber);
+        }
+
         $body = [
             'messaging_product' => 'whatsapp',
             'to' => $phoneNumber,
