@@ -42,7 +42,7 @@ class TelegramWebhookController extends AbstractController
                 if ($whatsappNumber) {
                     // Enviar el mensaje de respuesta a través de WhatsApp
                     
-                    $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje {$responseText} ");
+                    $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje '{$responseText}' ");
                     return $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
                 } else {
                     return new JsonResponse(['error' => 'No se pudo extraer el número de teléfono del mensaje original'], status: 200);
