@@ -49,6 +49,7 @@ class TelegramWebhookController extends AbstractController
                 }
             }
         }catch(\Exception $e){
+            $this->telegramService->notificaCionWhatsapp("Error al enviar a {$whatsappNumber} el mensaje {$responseText} : " . $e->getMessage());
             return new JsonResponse(['error' => $e->getMessage()], status: 200);
         }
         $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
