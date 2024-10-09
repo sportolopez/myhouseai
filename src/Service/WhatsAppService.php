@@ -38,11 +38,14 @@ class WhatsAppService
         // Cuerpo de la solicitud
         $body = [
             'messaging_product' => 'whatsapp',
-            'to' => $phoneNumber,
-            'type' => 'text',
-            'text' => [
-                'body' => $messageText,
-            ],
+            'to' => $phoneNumber,  // Número de teléfono como antes
+            'type' => 'template',  // Cambiado a "template"
+            'template' => [
+                'name' => 'hello_world',  // Nombre del template
+                'language' => [
+                    'code' => 'en_US'  // Código de idioma
+                ]
+            ]
         ];
 
         // Headers de la solicitud
@@ -84,13 +87,13 @@ class WhatsAppService
                 return new JsonResponse(['message' => 'Mensaje enviado correctamente a WhatsApp'], 200);
             } else {
                 $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp:' . $content);
-                return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $content], 200);
+                throw new \RuntimeException('Error enviando mensaje a WhatsApp: ' . $content);
             }
         } catch (\Exception $e) {
             // Captura errores en la solicitud
             error_log('Error en la solicitud a WhatsApp API' . $decodedContent);
             $this->telegramService->sendMessage('Error enviando mensaje a WhatsApp: ' . $content);
-            return new JsonResponse(['error' => 'Error enviando mensaje a WhatsApp', 'details' => $e->getMessage()], 200);
+            throw $e;
         }
     }
 }
