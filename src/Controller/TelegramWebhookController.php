@@ -28,24 +28,28 @@ class TelegramWebhookController extends AbstractController
     public function receiveTelegramResponse(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
         $content = json_decode($request->getContent(), associative: true);
+        try{
         // Verifica si es una respuesta a un mensaje previo
-        if (isset($content['message']['reply_to_message'])) {
-            $responseText = $content['message']['text'] ?? '';
-            $originalMessage = $content['message']['reply_to_message']['text'] ?? '';
-    
-            // Extraer el número de teléfono del mensaje original
-            $matches = [];
-            preg_match('/\((\d+)\)/', $originalMessage, $matches);
-            $whatsappNumber = $matches[1] ?? null;
-    
-            if ($whatsappNumber) {
-                // Enviar el mensaje de respuesta a través de WhatsApp
-                
-                $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje {$responseText} ");
-                return $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
-            } else {
-                return new JsonResponse(['error' => 'No se pudo extraer el número de teléfono del mensaje original'], status: 200);
+            if (isset($content['message']['reply_to_message'])) {
+                $responseText = $content['message']['text'] ?? '';
+                $originalMessage = $content['message']['reply_to_message']['text'] ?? '';
+        
+                // Extraer el número de teléfono del mensaje original
+                $matches = [];
+                preg_match('/\((\d+)\)/', $originalMessage, $matches);
+                $whatsappNumber = $matches[1] ?? null;
+        
+                if ($whatsappNumber) {
+                    // Enviar el mensaje de respuesta a través de WhatsApp
+                    
+                    $this->telegramService->notificaCionWhatsapp("Se intenta enviar a {$whatsappNumber} el mensaje {$responseText} ");
+                    return $whatsAppService->sendWhatsAppMessage($whatsappNumber,$responseText);
+                } else {
+                    return new JsonResponse(['error' => 'No se pudo extraer el número de teléfono del mensaje original'], status: 200);
+                }
             }
+        }catch(\Exception $e){
+            return new JsonResponse(['error' => $e->getMessage()], status: 200);
         }
         $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
         return new JsonResponse(['error' => 'Estructura de mensaje inválida o no es una respuesta'], 200);
