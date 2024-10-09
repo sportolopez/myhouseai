@@ -23,7 +23,28 @@ class WhatsAppWebhookController extends AbstractController
         $this->conn = $conn;
         $this->whatsAppService = $whatsAppService;
     }
-/*
+
+
+    #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
+    public function receiveWhatsAppMessage(Request $request): JsonResponse
+    {
+        // Obtén el contenido JSON del webhook
+        $content = json_decode($request->getContent(), true);
+
+    
+        // Verifica si el contenido tiene un mensaje o un estado de mensaje
+        if ($this->isValidMessage($content)) {
+            $this->processIncomingMessage($content);
+            return new JsonResponse(['message' => 'Mensaje recibido y procesado correctamente'], 200);
+        } elseif ($this->isValidStatus($content)) {
+            $this->processMessageStatus($content);
+            return new JsonResponse(['message' => 'Estado del mensaje procesado correctamente'], 200);
+        }
+        $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
+        // Loggea un error si no se recibió el contenido esperado
+        return new JsonResponse(['error' => 'Estructura inválida'], 200);
+    }
+
 
     #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp_get', methods: ['GET'])]
     public function verifyWebhook(Request $request): Response
@@ -45,31 +66,13 @@ class WhatsAppWebhookController extends AbstractController
         }
 
         return new Response('Bad request mode:'. $mode, 400);
-    }*/
-
-    #[Route(path: '/webhook/whatsapp', name: 'webhook_whatsapp', methods: ['POST'])]
-    public function receiveWhatsAppMessage(Request $request): JsonResponse
-    {
-        // Obtén el contenido JSON del webhook
-        $content = json_decode($request->getContent(), true);
-
-    
-        // Verifica si el contenido tiene un mensaje o un estado de mensaje
-        if ($this->isValidMessage($content)) {
-            $this->processIncomingMessage($content);
-            return new JsonResponse(['message' => 'Mensaje recibido y procesado correctamente'], 200);
-        } elseif ($this->isValidStatus($content)) {
-            $this->processMessageStatus($content);
-            return new JsonResponse(['message' => 'Estado del mensaje procesado correctamente'], 200);
-        }
-        $this->telegramService->notificaCionWhatsapp("CasoNoContemplado: " . $request->getContent());
-        // Loggea un error si no se recibió el contenido esperado
-        return new JsonResponse(['error' => 'Estructura inválida'], 200);
     }
+
+ 
     
  
 
-    #[Route(path: '/send-whatsapp', name: 'webhook_whatsapp', methods: ['GET'])]
+    #[Route(path: '/send-whatsapp', name: 'send-whatsapp', methods: ['GET'])]
     public function sendWhatsapp(Request $request): JsonResponse
     {
         $data = $request->query->get('ids'); 
