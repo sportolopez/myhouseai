@@ -131,24 +131,12 @@ class MercadoPagoController extends AbstractController
             try{
                 $payment = $paymentCliente->get($paymentId);
 
+                $payment = $paymentCliente->get($paymentId);
+
+// Convertir el objeto a JSON
+                $paymentJson = json_encode($payment, JSON_PRETTY_PRINT);
 
                 // Convertir el arreglo a JSON
-                $paymentArray = [
-                    'id' => $payment->id,
-                    'status' => $payment->status,
-                    'external_reference' => $payment->external_reference,
-                    'transaction_amount' => $payment->transaction_amount,
-                    'date_created' => $payment->date_created,
-                    'date_approved' => $payment->date_approved,
-                    'payment_method_id' => $payment->payment_method_id,
-                    'money_release_status' => $payment->money_release_status,
-                    'money_release_date' => $payment->money_release_date,
-                    // Agregar más propiedades según sea necesario
-                ];
-
-                // Convertir el arreglo a JSON
-                $paymentJson = json_encode($paymentArray, JSON_PRETTY_PRINT);
-                
                 $telegramService->sendMessage("PaymentDetails recibido: " . $paymentJson);
     
                 // Procesa la información del pago en tu sistema (actualiza base de datos, etc.)
