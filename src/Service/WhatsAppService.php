@@ -117,9 +117,20 @@ class WhatsAppService
             'to' => $phoneNumber,
             'type' => 'template',
             'template' => [
-                'name' => 'hello_world',  // Nombre del template
+                'name' => 'primer_mensaje',  // Nombre del template
                 'language' => [
-                    'code' => 'en_US'  // Código de idioma
+                    'code' => 'es_AR'  // Código de idioma
+                ],
+                "components" => [
+                    "type" => "header",
+                    "parameters" => [
+
+                        "type" => "image",
+                        "image" => [
+                            "link" => "https://myhouseai.com/static/img/mail.png"
+                        ]
+
+                    ]
                 ]
             ]
         ];
