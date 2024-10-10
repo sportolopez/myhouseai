@@ -192,9 +192,8 @@ class WhatsAppWebhookController extends AbstractController
        };
    
        if ($message) {
-        $this->telegramService->sendMessage("
-         " . json_encode($content));
-           $this->notifyTelegram($message);
+            error_log(json_encode($content));
+            $this->notifyTelegram($message);
        }
    }
    
