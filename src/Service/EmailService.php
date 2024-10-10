@@ -18,7 +18,7 @@ class EmailService
     private $smtpPort = 465;
     private $smtpUser = 'ventas@myhouseai.com';
     private $smtpPassword = '1@2z5NT0xY';
-    private $smtpFrom = 'martin@myhouseai.com.ar';
+    private $smtpFrom = 'ventas@myhouseai.com';
     private $smtpFromName = 'Martin';
 
     public function __construct(

@@ -113,6 +113,8 @@ class WhatsAppWebhookController extends AbstractController
                 );
                 
                 $successCount++;
+
+                sleep(1);
             } catch (\Exception $e) {
                 // Si hay un error, marcar la columna 'error' con 1
                 $this->conn->executeUpdate(
