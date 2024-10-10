@@ -118,7 +118,7 @@ class MercadoPagoController extends AbstractController
         $data = json_decode($request->getContent(), true);
     
         // Registra los datos para depuración
-        $telegramService->sendMessage("DEBUG: WebHook recibido: " . $request->getContent());
+        error_log("DEBUG: WebHook recibido: " . $request->getContent());
     
         // Verifica si el mensaje es de tipo 'payment' y tiene un ID de pago
         if (isset($data['type']) && $data['type'] === 'payment' && isset($data['data']['id'])) {
