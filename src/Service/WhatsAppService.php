@@ -121,15 +121,17 @@ class WhatsAppService
                 'language' => [
                     'code' => 'es_AR'  // Código de idioma
                 ],
-                "components" => [
-                    "type" => "header",
-                    "parameters" => [
-
-                        "type" => "image",
-                        "image" => [
-                            "link" => "https://myhouseai.com/static/img/mail.png"
+                'components' => [
+                    [
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => 'image',
+                                'image' => [
+                                    'link' => 'https://myhouseai.com/static/img/mail.png'  // URL de la imagen
+                                ]
+                            ]
                         ]
-
                     ]
                 ]
             ]
