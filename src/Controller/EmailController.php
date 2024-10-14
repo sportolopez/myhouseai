@@ -40,7 +40,7 @@ class EmailController extends AbstractController
         $asunto = $request->query->get('asunto');
         $template = $request->query->get('template');
         $limit = $request->query->get('limit', 30);
-
+        $conAdjuntos = $request->query->get('adjuntos', false);
         if($ids)
             $idArray = array_map('intval', explode(',', $ids));
 
@@ -78,7 +78,8 @@ class EmailController extends AbstractController
         // Enviar correos electrónicos a las inmobiliarias
         foreach ($inmobiliarias as $inmobiliaria) {
             if (filter_var($inmobiliaria->getEmail(), FILTER_VALIDATE_EMAIL)) {
-                $this->emailService->processEmail($inmobiliaria, $asunto, $template);
+                print_r("Con adjunto:" . $conAdjuntos);
+                $this->emailService->processEmail($inmobiliaria, $asunto, $template,$conAdjuntos);
                 sleep(20);
             } else {
                 $telegramService->sendMessage("⚠️ Email invalido {$inmobiliaria->getEmail()}");
@@ -131,7 +132,7 @@ class EmailController extends AbstractController
             throw $this->createNotFoundException('No se encontró la inmobiliaria con id ' . $inmobiliaria_id);
         }
 
-        $this->emailService->processEmail($inmobiliarium, $template, $asunto . " " . $inmobiliarium->getDireccion());
+        $this->emailService->processEmail($inmobiliarium, $template, $asunto . " " . $inmobiliarium->getDireccion(), false);
 
         return new JsonResponse(['message' => 'Emails sent successfully']);
     }

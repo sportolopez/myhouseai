@@ -31,7 +31,7 @@ class EmailService
         $this->encryptionService = $encryptionService;
     }
 
-    public function processEmail($inmobiliaria, $subject, $template)
+    public function processEmail($inmobiliaria, $subject, $template, $conAdjuntos)
     {
         // Crear y persistir el registro del email enviado
         $emailEnviado = new EmailEnviado();
@@ -44,6 +44,7 @@ class EmailService
         $this->em->persist($emailEnviado);
         $this->em->flush();
 
+
         // URL del pixel de seguimiento
         $pixelUrl = 'https://myhouseai.com/api/track-email/' . $emailEnviado->getId();
 
@@ -53,6 +54,8 @@ class EmailService
             'ruta_imagen_generada' => 'https://myhouseai.com/api/inmobiliaria/' . $inmobiliaria->getId() . '/imagenGenerada.png',
             'pixel_url' => $pixelUrl
         ]);
+
+
 
         // Obtener la dirección de la inmobiliaria y encriptar el email
         $domicilio = $inmobiliaria->getDireccion();
@@ -65,8 +68,21 @@ class EmailService
         $htmlContent = str_replace('{session}', $sessionId, $htmlContent);
         error_log("Asunto modificado: $subject");
 
+
+        $imagePaths = [];
+
+        // Si se indican adjuntos, agregar las URLs de las imágenes
+        // Si se indican adjuntos, agregar las rutas de las imágenes desde la carpeta local
+        if ($conAdjuntos) {
+            $imagePaths = [
+                __DIR__ . '/../../../public/images/decorar.png',
+                __DIR__ . '/../../../public/images/limpiar.png'
+            ];
+        }
+
+
         // Enviar el correo utilizando PHPMailer
-        $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent);
+        $this->sendPHPMailerEmail($inmobiliaria->getEmail(), $subject, $htmlContent,$imagePaths);
     }
 
     public function emailCompra(UsuarioCompras $usuarioCompra)
@@ -84,8 +100,10 @@ class EmailService
         $this->sendPHPMailerEmail($usuarioCompra->getUsuario()->getEmail(), $subject, $htmlContent);
     }
 
-    private function sendPHPMailerEmail($to, $subject, $htmlContent)
+    
+    private function sendPHPMailerEmail($to, $subject, $htmlContent, array $imagePaths = [])
     {
+    
         $mail = new PHPMailer(true);
 
         try {
@@ -109,6 +127,17 @@ class EmailService
             $mail->Subject = $subject;
             $mail->Body = $htmlContent;
 
+            if (!empty($imagePaths)) {
+                foreach ($imagePaths as $imagePath) {
+                    if (file_exists($imagePath)) {
+                        $mail->addAttachment($imagePath);
+                    } else {
+
+                        error_log("No se encontró la imagen en la ruta: $imagePath");
+                        throw new \RuntimeException("No se encontro la ruta: $imagePath");
+                    }
+                }
+            }
             // Enviar el correo
             $mail->send();
         } catch (\Exception $e) {
