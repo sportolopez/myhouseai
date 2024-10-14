@@ -75,8 +75,8 @@ class EmailService
         // Si se indican adjuntos, agregar las rutas de las imágenes desde la carpeta local
         if ($conAdjuntos) {
             $imagePaths = [
-                __DIR__ . '/../../../public/images/decorar.png',
-                __DIR__ . '/../../../public/images/limpiar.png'
+                __DIR__ . '/../../public/images/decorar.png',
+                __DIR__ . '/../../public/images/limpiar.jpg'
             ];
         }
 

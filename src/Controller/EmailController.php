@@ -78,7 +78,6 @@ class EmailController extends AbstractController
         // Enviar correos electrónicos a las inmobiliarias
         foreach ($inmobiliarias as $inmobiliaria) {
             if (filter_var($inmobiliaria->getEmail(), FILTER_VALIDATE_EMAIL)) {
-                print_r("Con adjunto:" . $conAdjuntos);
                 $this->emailService->processEmail($inmobiliaria, $asunto, $template,$conAdjuntos);
                 sleep(20);
             } else {
