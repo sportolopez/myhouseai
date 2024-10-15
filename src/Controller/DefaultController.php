@@ -83,6 +83,11 @@ class DefaultController extends AbstractController
         return new JsonResponse($imagenesArray, Response::HTTP_OK, ['Content-Type' => 'application/json']);
     }
 
+    #[Route('/generar', name: 'generar_get', methods: ['GET'])]
+    public function generarGet(TelegramService $telegramService): Response{
+        $telegramService->sendMessage("Se hizo click en generar");
+        return new Response("registrado");
+    }
  
     #[Route('/generar', name: 'generar', methods: ['POST'])]
     public function generar(
