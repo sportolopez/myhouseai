@@ -69,7 +69,19 @@ class WhatsAppWebhookController extends AbstractController
     }
 
  
+    #[Route(path: '/whatsapp/sinenvios', name: 'sinenvios-whatsapp', methods: ['GET'])]
+    public function sinEnvios(Request $request): Response
+    {
+        // Obtener el parámetro 'limit' de la URL, por defecto es 20
+        $limit = $request->query->get('limit', 20);
     
+        $query = "SELECT id FROM `inmobiliarias_whatsapp` WHERE telefono LIKE '54911%' AND enviado = 0 AND error = 0 LIMIT :limit";
+        $stmt = $this->conn->executeQuery($query, ['limit' => (int) $limit], ['limit' => \PDO::PARAM_INT]);
+        $contacts = $stmt->fetchAllNumeric();
+        $numbers = array_column($contacts, 0); // El índice 0 es donde están los números
+  
+        return new Response(implode(",",$numbers));
+    }
  
 
     #[Route(path: '/send-whatsapp', name: 'send-whatsapp', methods: ['GET'])]
