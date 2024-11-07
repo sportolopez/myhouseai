@@ -83,4 +83,14 @@ class InmobiliariaRepository extends ServiceEntityRepository
             }
             return $query->execute()->fetchAllAssociative();
         }
+
+        public function findAllVencidos(?string $emailDomain = null,?string $notemailDomain = null): array
+        {
+            $sql = 'SELECT id FROM MAILS_VENCIDOS';
+
+            $sql .= ' ORDER BY id ASC';
+            $query = $this->getEntityManager()->getConnection()->prepare($sql);
+
+            return $query->execute()->fetchAllAssociative();
+        }
 }

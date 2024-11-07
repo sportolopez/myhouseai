@@ -157,6 +157,25 @@ class EmailController extends AbstractController
         ]);
     }
 
+    #[Route('/vencidos', name: 'vencidos', methods: ['GET'])]
+    public function vencidos(Request $request, InmobiliariaRepository $inmobiliariaRepository): JsonResponse
+    {
+        // Obtener todas las inmobiliarias sin correos enviados
+        $inmobiliariasSinEmail = $inmobiliariaRepository->findAllVencidos();
+    
+        // Obtener la cantidad de inmobiliarias
+        $cantidadInmobiliarias = count($inmobiliariasSinEmail);
+    
+        // Extraer los IDs y unirlos en una cadena separada por comas
+        $listaIds = implode(',', array_column($inmobiliariasSinEmail, 'id'));
+    
+        // Retornar un JSON con las propiedades solicitadas
+        return new JsonResponse([
+            'cantidad_inmobiliarias_sin_email' => $cantidadInmobiliarias,
+            'lista_ids' => $listaIds
+        ]);
+    }
+
   
 
 }
