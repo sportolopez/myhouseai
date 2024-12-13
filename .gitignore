@@ -7,3 +7,6 @@
 /public/bundles/
 /var/
 ###< symfony/framework-bundle ###
+java/target/classes/
+java/src/main/resources/Sin_marca_reducida/
+java/vendor/
