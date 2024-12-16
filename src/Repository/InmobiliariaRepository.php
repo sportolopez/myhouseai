@@ -86,7 +86,18 @@ class InmobiliariaRepository extends ServiceEntityRepository
 
         public function findAllVencidos(?string $emailDomain = null,?string $notemailDomain = null): array
         {
-            $sql = 'SELECT id FROM MAILS_VENCIDOS';
+            $sql = 'select
+    `i`.`id` as `id`
+from
+    (`c1802222_myhouse`.`inmobiliaria` `i`
+left join `c1802222_myhouse`.`email_enviado` `ee` on
+    ((`i`.`id` = `ee`.`inmobiliaria_id`)))
+group by
+    `i`.`id`,
+    `i`.`email`
+having
+    ((count(`ee`.`id`) > 0)
+        and (max(`ee`.`fecha`) < (now() - interval 4 week)));';
 
             $sql .= ' ORDER BY id ASC';
             $query = $this->getEntityManager()->getConnection()->prepare($sql);
