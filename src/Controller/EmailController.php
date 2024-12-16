@@ -176,7 +176,7 @@ class EmailController extends AbstractController
         ]);
     }
 
-    #[Route('/showview', name: 'vencidos', methods: ['GET'])]
+    #[Route('/showview', name: 'showview', methods: ['GET'])]
     public function showview(EntityManagerInterface $entityManager): JsonResponse
     {
         // Ejecutar la consulta para obtener el detalle de la vista MAILS_VENCIDOS
