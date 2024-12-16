@@ -176,6 +176,18 @@ class EmailController extends AbstractController
         ]);
     }
 
-  
+    #[Route('/showview', name: 'vencidos', methods: ['GET'])]
+    public function showview(EntityManagerInterface $entityManager): JsonResponse
+    {
+        // Ejecutar la consulta para obtener el detalle de la vista MAILS_VENCIDOS
+        $query = $entityManager->getConnection()->prepare("SHOW CREATE VIEW MAILS_VENCIDOS");
+        $result = $query->executeStatement();
+    
+        if (!$result) {
+            return new JsonResponse(['error' => 'No se pudo obtener el detalle de la vista'], JsonResponse::HTTP_NOT_FOUND);
+        }
+    
+        return new JsonResponse(['view_details' => $result], JsonResponse::HTTP_OK);
+    }
 
 }
