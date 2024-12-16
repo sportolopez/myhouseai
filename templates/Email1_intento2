@@ -1,0 +1,24 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Correo de Inmobiliaria</title>
+</head>
+<body>
+
+    <p>Hola,</p> 
+    <p>Hace un tiempo te presentamos nuestra app que transforma fotos de propiedades en imágenes atractivas y modernas, ideal para captar más interés en tus publicaciones. 😊</p>
+    <p>¿Todavía no la probaste? No te preocupes, nunca es tarde para destacar en el mercado inmobiliario. Recuerda que:</p> 
+    <ul> <li>🖼️ Podés convertir espacios vacíos o anticuados en ambientes modernos.</li> 
+    <li>🚪 Eliminar objetos no deseados es fácil, mostrando espacios limpios y despejados.</li> 
+    <li>📈 Aumentá los clicks y las consultas en tus publicaciones con imágenes profesionales.</li> 
+    </ul> 
+    <p><b>¡Y lo mejor de todo! Probala gratis y sin compromiso: <a href="https://myhouseai.com.ar/?idgenerar={session}">www.myhouseai.com.ar</a></b></p> 
+    <p>Te adjuntamos un recordatorio de cómo puede ayudarte:</p>
+    <p>Si tenés alguna consulta, no dudes en escribirnos. ¡Estamos para ayudarte!</p> 
+    <p>Saludos,<br>El equipo de MyHouse AI</p>
+
+<p>Saludos</p>
+</body>
+</html>
