@@ -16,8 +16,10 @@ class EmailService
     private $encryptionService;
     private $smtpHost = 'c1802222.ferozo.com';
     private $smtpPort = 465;
-    private $smtpUser = 'ventas@myhouseai.com';
-    private $smtpPassword = '1@2z5NT0xY';
+    private $smtpUser = 'ventas@myhouseai.com.ar';
+    private $smtpPassword = 'witJ@So2jW';
+    //private $smtpUser = 'ventas@myhouseai.com';
+    //private $smtpPassword = '1@2z5NT0xY';
     private $smtpFrom = 'ventas@myhouseai.com';
     private $smtpFromName = 'Martin';
 
