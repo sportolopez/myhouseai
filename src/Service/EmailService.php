@@ -20,7 +20,7 @@ class EmailService
     private $smtpPassword = 'witJ@So2jW';
     //private $smtpUser = 'ventas@myhouseai.com';
     //private $smtpPassword = '1@2z5NT0xY';
-    private $smtpFrom = 'ventas@myhouseai.com';
+    private $smtpFrom = 'ventas@myhouseai.com.ar';
     private $smtpFromName = 'Martin';
 
     public function __construct(
