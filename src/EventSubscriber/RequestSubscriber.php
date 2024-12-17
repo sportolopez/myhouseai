@@ -96,7 +96,7 @@ class RequestSubscriber implements EventSubscriberInterface
                 substr($response->getContent(), 0, 200)
             );
 
-            $this->telegramService->sendMessage($message);
+            $this->telegramService->notificaLecturaDev($message);
         }
     }
     public function onKernelTerminate(TerminateEvent $event): void

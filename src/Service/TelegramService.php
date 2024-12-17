@@ -9,6 +9,7 @@ class TelegramService
     
     private const CHAT_ID_WHATSAPP = "-4590360358";
     private const CHAT_ID_LECTURA = "-4574469813";
+    private const CHAT_DEV_ID = "-4585899489";
 
     public function __construct()
     {
@@ -49,6 +50,11 @@ class TelegramService
     public function notificaLectura(string $message)
     {
         $this->sendMessageAgrupo($message,self::CHAT_ID_LECTURA);
+    }
+
+    public function notificaLecturaDev(string $message)
+    {
+        $this->sendMessageAgrupo($message,self::CHAT_DEV_ID);
     }
 
     public function notificaCionWhatsapp(string $message)
