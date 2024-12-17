@@ -165,7 +165,7 @@ class DefaultController extends AbstractController
         $entityManager->persist($usuario);
         $entityManager->flush();
     
-        $telegramService->sendMessage("📷 Se ejecuto generar: {$usuario->getEmail()}  render id {$imagen->getRenderId()}");
+        $telegramService->sendMessage("📷 Se ejecuto generar: {$usuario->getEmail()}  \r\n render id {$imagen->getRenderId()} \r\n Imagen: https://myhouseai.com/api/consultar/{$uuid}.jpg");
            
         return new JsonResponse(['generation_id' => $uuid, 'cantidad_imagenes_disponibles' => $usuario->getCantidadImagenesDisponibles()], JsonResponse::HTTP_OK);
     }
