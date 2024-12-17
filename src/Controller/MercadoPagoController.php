@@ -137,7 +137,7 @@ class MercadoPagoController extends AbstractController
                 $paymentJson = json_encode($payment, JSON_PRETTY_PRINT);
 
                 // Convertir el arreglo a JSON
-                $telegramService->sendMessage("PaymentDetails recibido: " . $paymentJson);
+                
     
                 // Procesa la información del pago en tu sistema (actualiza base de datos, etc.)
                 // $this->paymentService->processPayment($paymentDetails);
@@ -160,10 +160,11 @@ class MercadoPagoController extends AbstractController
                             $telegramService->sendMessage(message: 'Compra ya efectuada, update de status ' . $idUsuarioCompra);
                             break;
                         }
+                        
                         $usuarioCompra->setEstado(EstadoCompra::SUCCESS);
                         $usuarioPagador->setCantidadImagenesDisponibles($usuarioPagador->getCantidadImagenesDisponibles()+$usuarioCompra->getCantidad());
-                        $telegramService->sendMessage("💰 Pago approved con ID: " . $paymentId);
-
+                        $telegramService->sendMessage("💰 Pago approved con ID: " . $paymentId . " usuario: " . $usuarioCompra->getUsuario()->getEmail() . " cantidad imagenes:" . $usuarioCompra->getCantidad());
+                        //$telegramService->sendMessage("PaymentDetails recibido: " . $paymentJson);
                         try{
                             $emailService->emailCompra($usuarioCompra);
                         }catch (Exception $e){
